@@ -1,6 +1,3 @@
-// Biên dịch lại các tệp bằng: g++ -o NewModel NewModel.cpp MLP.cpp ActivationFunctions.cpp
-// Chạy chương trình bằng: ./NewModel
-
 #include <iostream>
 #include "MLP.h"
 #include "ActivationFunctions.h"
@@ -16,8 +13,9 @@ int main() {
     // Nhãn đầu ra tương ứng
     vector<float> labels = {0, 1, 1, 0};  // XOR logic gate
 
-    // Khởi tạo mô hình MLP với 2 input, 2 nơ-ron ẩn, tốc độ học 0.1
-    MLP mlp(2, 2, 0.1);
+    // Khởi tạo mô hình MLP với 2 input, 3 lớp ẩn (mỗi lớp 3 nơ-ron), tốc độ học 0.1
+    vector<int> layer_sizes = {2, 3, 3, 3, 1}; // 2 input, 3 nơ-ron lớp ẩn thứ nhất, 3 nơ-ron lớp ẩn thứ hai, 3 nơ-ron lớp ẩn thứ ba, 1 output
+    MLP mlp(layer_sizes, 0.1);
 
     // Huấn luyện mô hình trong 10 epochs
     mlp.train(training_data, labels, 10000);

@@ -1,58 +1,95 @@
 #include "MLP.h"
 #include "ActivationFunctions.h"
 
-MLP::MLP(int input_size, int hidden_size, float lr) {
-    // Khởi tạo trọng số và bias
-    weights_hidden.resize(input_size, std::vector<float>(hidden_size, 0.1));  // 0.1 là giá trị khởi tạo trọng số
-    weights_output.resize(hidden_size, 0.1);
-    hidden_layer.resize(hidden_size, 0.0);
-    bias_hidden = 0.1;
+MLP::MLP(const std::vector<int>& layer_sizes, float lr) {
+    int num_layers = layer_sizes.size();
+    weights_hidden.resize(num_layers - 1);
+    biases_hidden.resize(num_layers - 1);
+    hidden_layers.resize(num_layers - 1);
+
+    for (int i = 0; i < num_layers - 1; ++i) {
+        weights_hidden[i].resize(layer_sizes[i], std::vector<float>(layer_sizes[i + 1], 0.1));
+        biases_hidden[i].resize(layer_sizes[i + 1], 0.1);
+        hidden_layers[i].resize(layer_sizes[i + 1], 0.0);
+    }
+
+    weights_output.resize(layer_sizes.back(), 0.1);
     bias_output = 0.1;
     learning_rate = lr;
 }
 
 float MLP::predict(const std::vector<float>& inputs) {
-    // Tính toán các nơ-ron ở lớp ẩn với ReLU
-    for (int i = 0; i < hidden_layer.size(); i++) {
-        float sum = bias_hidden;
-        for (int j = 0; j < inputs.size(); j++) {
-            sum += inputs[j] * weights_hidden[j][i];
+    std::vector<float> current_layer = inputs;
+
+    for (int i = 0; i < hidden_layers.size(); ++i) {
+        std::vector<float> next_layer(hidden_layers[i].size(), 0.0);
+        for (int j = 0; j < hidden_layers[i].size(); ++j) {
+            float sum = biases_hidden[i][j];
+            for (int k = 0; k < current_layer.size(); ++k) {
+                sum += current_layer[k] * weights_hidden[i][k][j];
+            }
+            next_layer[j] = relu(sum);
         }
-        hidden_layer[i] = relu(sum);
+        current_layer = next_layer;
     }
 
-    // Tính toán lớp đầu ra với Sigmoid
     float output_sum = bias_output;
-    for (int i = 0; i < hidden_layer.size(); i++) {
-        output_sum += hidden_layer[i] * weights_output[i];
+    for (int i = 0; i < current_layer.size(); ++i) {
+        output_sum += current_layer[i] * weights_output[i];
     }
     return sigmoid(output_sum);
 }
 
 void MLP::train(const std::vector<std::vector<float>>& training_data, const std::vector<float>& labels, int epochs) {
-    for (int epoch = 0; epoch < epochs; epoch++) {
-        for (int i = 0; i < training_data.size(); i++) {
+    for (int epoch = 0; epoch < epochs; ++epoch) {
+        for (int i = 0; i < training_data.size(); ++i) {
             // Bước 1: Dự đoán
-            float prediction = predict(training_data[i]);
+            std::vector<std::vector<float>> layer_outputs(hidden_layers.size() + 1);
+            layer_outputs[0] = training_data[i];
 
-            // Bước 2: Tính toán lỗi
+            for (int j = 0; j < hidden_layers.size(); ++j) {
+                std::vector<float> next_layer(hidden_layers[j].size(), 0.0);
+                for (int k = 0; k < hidden_layers[j].size(); ++k) {
+                    float sum = biases_hidden[j][k];
+                    for (int l = 0; l < layer_outputs[j].size(); ++l) {
+                        sum += layer_outputs[j][l] * weights_hidden[j][l][k];
+                    }
+                    next_layer[k] = relu(sum);
+                }
+                layer_outputs[j + 1] = next_layer;
+            }
+
+            float prediction = predict(training_data[i]);
             float error_output = labels[i] - prediction;
 
-            // Bước 3: Điều chỉnh trọng số của lớp đầu ra
-            for (int j = 0; j < hidden_layer.size(); j++) {
+            // Bước 2: Điều chỉnh trọng số của lớp đầu ra
+            for (int j = 0; j < weights_output.size(); ++j) {
                 float delta_output = error_output * sigmoid_derivative(prediction);
-                weights_output[j] += learning_rate * delta_output * hidden_layer[j];
+                weights_output[j] += learning_rate * delta_output * layer_outputs.back()[j];
             }
             bias_output += learning_rate * error_output * sigmoid_derivative(prediction);
 
-            // Bước 4: Điều chỉnh trọng số của lớp ẩn
-            for (int j = 0; j < hidden_layer.size(); j++) {
-                float error_hidden = error_output * sigmoid_derivative(prediction) * weights_output[j];
-                for (int k = 0; k < training_data[i].size(); k++) {
-                    weights_hidden[k][j] += learning_rate * error_hidden * relu_derivative(hidden_layer[j]) * training_data[i][k];
+            // Bước 3: Điều chỉnh trọng số của các lớp ẩn
+            std::vector<float> error_hidden_next(weights_output.size(), 0.0);
+            for (int j = hidden_layers.size() - 1; j >= 0; --j) {
+                std::vector<float> error_hidden(hidden_layers[j].size(), 0.0);
+                for (int k = 0; k < hidden_layers[j].size(); ++k) {
+                    float error = 0.0;
+                    if (j == hidden_layers.size() - 1) {
+                        error = error_output * sigmoid_derivative(prediction) * weights_output[k];
+                    } else {
+                        for (int l = 0; l < hidden_layers[j + 1].size(); ++l) {
+                            error += error_hidden_next[l] * weights_hidden[j + 1][k][l];
+                        }
+                    }
+                    error_hidden[k] = error * relu_derivative(layer_outputs[j + 1][k]);
+                    for (int l = 0; l < layer_outputs[j].size(); ++l) {
+                        weights_hidden[j][l][k] += learning_rate * error_hidden[k] * layer_outputs[j][l];
+                    }
+                    biases_hidden[j][k] += learning_rate * error_hidden[k];
                 }
+                error_hidden_next = error_hidden;
             }
-            bias_hidden += learning_rate * error_output * sigmoid_derivative(prediction);
         }
     }
 }
