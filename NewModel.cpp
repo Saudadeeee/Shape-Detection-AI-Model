@@ -1,3 +1,6 @@
+// Biên dịch lại các tệp bằng: g++ -o NewModel NewModel.cpp MLP.cpp ActivationFunctions.cpp
+// Chạy chương trình bằng: ./NewModel
+
 #include <iostream>
 #include "MLP.h"
 #include "ActivationFunctions.h"
