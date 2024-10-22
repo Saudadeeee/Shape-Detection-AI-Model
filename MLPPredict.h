@@ -3,6 +3,4 @@
 
 #include "MLP.h"
 
-float MLP::predict(const std::vector<float>& inputs);
-
 #endif // MLP_PREDICT_H

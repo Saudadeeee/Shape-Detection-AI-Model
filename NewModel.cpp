@@ -1,5 +1,5 @@
-Biên dịch các tệp bằng g++ -o NewModel NewModel.cpp MLP.cpp MLPTrain.cpp MLPPredict.cpp ActivationFunctions.cpp
-Sau đó chạy chương trình bằng g++ ./NewModel
+// Biên dịch các tệp bằng g++ -o NewModel NewModel.cpp MLP.cpp MLPTrain.cpp MLPPredict.cpp ActivationFunctions.cpp
+// Sau đó chạy chương trình bằng g++ ./NewModel
 #include <iostream>
 #include "MLP.h"
 #include "ActivationFunctions.h"

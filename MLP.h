@@ -12,6 +12,7 @@
 #define MLP_H
 
 #include <vector>
+//#include <string>
 
 class MLP {
 public:
