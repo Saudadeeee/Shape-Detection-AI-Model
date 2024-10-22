@@ -9,7 +9,7 @@
 #include "MLP.h"
 #include "ActivationFunctions.h"
 #include "MLPPredict.h"
-#include "MLPTrain.h"
+#include  "MLPTrain.h"
 #include <cstdlib> //Chỉ để sử dụng hàm rand()
 #include <ctime>//Tương tụư như trên, bỏ cũng được
 

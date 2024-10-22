@@ -21,32 +21,40 @@ using namespace std;
 
 int main() {
    // Đọc ảnh và chuyển đổi thành dữ liệu đầu vào
-    vector<vector<int>> image = ImageProcessor::readImage("image.txt");
+    vector<vector<vector<int>>> images = ImageProcessor::readImages("image.txt");
 
     // Chuyển đổi ảnh thành vector 1 chiều
-    vector<float> input;
-    for (const auto& row : image) {
-        for (int pixel : row) {
-            input.push_back(static_cast<float>(pixel));
+    vector<vector<float>> training_data;
+    for (const auto& image : images) {
+        vector<float> input;
+        for (const auto& row : image) {
+            for (int pixel : row) {
+                input.push_back(static_cast<float>(pixel));
+            }
         }
+        training_data.push_back(input);
     }
 
-    // Dữ liệu huấn luyện (ví dụ đơn giản)
-    vector<vector<float>> training_data = {
-        input, input, input, input
-    };
     // Nhãn đầu ra tương ứng
-    vector<float> labels = {1, 0, 1, 1};  // Giả sử tất cả đều là hình vuông
+    vector<float> labels = {1, 0, 1, 1};  // Giả sử tất cả đều là hình vuông trừ số 2
 
      // Khởi tạo mô hình MLP với 2 input, 10 lớp ẩn (mỗi lớp 10 nơ-ron), tốc độ học 0.1
-    vector<int> layer_sizes = {static_cast<int>(input.size()), 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 1}; // 2 input, 10 lớp ẩn, 1 output
+    vector<int> layer_sizes = {static_cast<int>(training_data[0].size()), 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 1}; // Kích thước đầu vào, 10 lớp ẩn, 1 output
     MLP mlp(layer_sizes, 0.1);
 
     // Huấn luyện mô hình trong 10000 epochs
     mlp.train(training_data, labels, 10000);
 
+    // Kiểm tra dự đoán
     for (size_t i = 0; i < training_data.size(); ++i) {
-        cout << "Du doan cho anh " << i + 1 << ": " << mlp.predict(training_data[i]) << endl;
+        float prediction = mlp.predict(training_data[i]);
+        cout << "Du doan cho anh " << i + 1 << ": " << prediction << " (";
+        if (prediction > 0.5) {
+            cout << "Hinh vuong";
+        } else {
+            cout << "Khong phai hinh vuong";
+        }
+        cout << ")" << endl;
     }
 
    return 0;

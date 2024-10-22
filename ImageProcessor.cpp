@@ -1,4 +1,3 @@
-//Đọc và xử lí ảnh
 #include "ImageProcessor.h"
 #include <fstream>
 #include <sstream>
@@ -7,8 +6,8 @@
 std::vector<std::vector<int>> ImageProcessor::readImage(const std::string& imagePath) {
     std::vector<std::vector<int>> image;
     std::ifstream file(imagePath);
-    if (!file) {//Dùng cerr để in ra lỗi luôn mà không ảnh hướngr tới cout
-        std::cerr << "Khong the mo file, hay thu lai " << imagePath << std::endl;
+    if (!file) {
+        std::cerr << "Could not open the file: " << imagePath << std::endl;
         return image;
     }
 
@@ -25,4 +24,38 @@ std::vector<std::vector<int>> ImageProcessor::readImage(const std::string& image
 
     file.close();
     return image;
+}
+
+std::vector<std::vector<std::vector<int>>> ImageProcessor::readImages(const std::string& imagePath) {
+    std::vector<std::vector<std::vector<int>>> images;
+    std::ifstream file(imagePath);
+    if (!file) {
+        std::cerr << "Could not open the file: " << imagePath << std::endl;
+        return images;
+    }
+
+    std::string line;
+    std::vector<std::vector<int>> image;
+    while (std::getline(file, line)) {
+        if (line.empty()) {
+            if (!image.empty()) {
+                images.push_back(image);
+                image.clear();
+            }
+        } else {
+            std::vector<int> row;
+            std::istringstream iss(line);
+            int pixel;
+            while (iss >> pixel) {
+                row.push_back(pixel);
+            }
+            image.push_back(row);
+        }
+    }
+    if (!image.empty()) {
+        images.push_back(image);
+    }
+
+    file.close();
+    return images;
 }
