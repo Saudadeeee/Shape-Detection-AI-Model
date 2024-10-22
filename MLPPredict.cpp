@@ -1,7 +1,7 @@
 #include "MLPPredict.h"
 #include "ActivationFunctions.h"
 
-float MLP::predict(const std::vector<float>& inputs) {
+float MLP::predict(const std::vector<float>& inputs) const {
     std::vector<float> current_layer = inputs;
 
     for (int i = 0; i < hidden_layers.size(); ++i) {

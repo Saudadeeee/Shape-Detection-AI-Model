@@ -26,7 +26,7 @@ public:
     MLP(const std::vector<int>& layer_sizes, float lr); //Nhap vao vector voi kich thuoc cac lop va learning rate
 
     // Dự đoán đầu ra
-    float predict(const std::vector<float>& inputs);//dự đoán đầu ra dựa trên các đầu vào
+    float predict(const std::vector<float>& inputs) const ;//dự đoán đầu ra dựa trên các đầu vào
 
     // Huấn luyện mô hình
     void train(const std::vector<std::vector<float>>& training_data, const std::vector<float>& labels, int epochs);//huấn luyện mô hình với dữ liệu huấn luyện, nhãn và số lượng epochs.

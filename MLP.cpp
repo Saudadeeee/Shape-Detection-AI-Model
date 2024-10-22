@@ -1,8 +1,15 @@
 // Định nghĩa các phương thức của lớp MLP
-//file này quan trọng nhất nên động vào khi nào đọc hết comment ở trên
+//File này nói chung dùng để khởi tạo trọng số và bias cho mô hình mạng nơ-ron
+//PS D:\Code\SourceCode\Project\AI> g++ ./NewModel
+
+
+
+
 
 #include "MLP.h"
 #include "ActivationFunctions.h"
+#include "MLPPredict.h"
+#include "MLPTrain.h"
 #include <cstdlib> //Chỉ để sử dụng hàm rand()
 #include <ctime>//Tương tụư như trên, bỏ cũng được
 
@@ -22,6 +29,8 @@ MLP::MLP(const std::vector<int>& layer_sizes, float lr) {
         for (int j = 0; j < layer_sizes[i]; ++j) {//Vòng lặp qua các nơ-ron của lớp thứ i
             for (int k = 0; k < layer_sizes[i + 1]; ++k) {//Vòng lặp qua các nơ-ron của lớp tiếp theo.
                 weights_hidden[i][j][k] = static_cast<float>(std::rand()) / RAND_MAX - 0.5f; // Khởi tạo ngẫu nhiên trong khoảng [-0.5, 0.5]
+            //Mục đích của cái static_cast này là để chuyển đổi kiểu dữ liệu từ int sang float
+            //Nói chung là để ép kiểu
             }
         }
         // Vòng lặp qua các nơ-ron của lớp tiếp theo.
