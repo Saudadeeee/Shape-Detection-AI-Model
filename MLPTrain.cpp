@@ -1,7 +1,5 @@
 // Định nghĩa phương thức train của MLP
 // Thực hiện quá trình train bằng sử dụng thuật toán lan truyền ngược
-
-
 #include "MLPTrain.h"
 #include "ActivationFunctions.h"//sử dụng các hàm kích hoạt và đạo hàm của chúng
 
@@ -16,7 +14,6 @@ void MLP::train(const std::vector<std::vector<float>>& training_data , const std
             // Bước 1: Dự đoán
             std::vector<std::vector<float>> layer_outputs(hidden_layers.size() + 1);//Khởi tạo một vector để lưu trữ đầu ra của các lớp. Kích thước của vector này bằng với số lớp của mô hình + 1.
             layer_outputs[0] = training_data[i];//Gán đầu vào của mẫu dữ liệu hiện tại cho lớp đầu tiên.
-
             for (int j = 0; j < hidden_layers.size(); ++j) {
                 std::vector<float> next_layer(hidden_layers[j].size(), 0.0);
                 for (int k = 0; k < hidden_layers[j].size(); ++k) {

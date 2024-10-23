@@ -6,8 +6,7 @@
 
 class ImageProcessor {
 public:
-    static std::vector<std::vector<int>> readImage(const std::string& imagePath);
-    static std::vector<std::vector<std::vector<int>>> readImages(const std::string& imagePath);
+   static std::vector<std::vector<std::vector<int>>> readImages(const std::string& imagePath);
 };
 
 #endif // IMAGE_PROCESSOR_H
