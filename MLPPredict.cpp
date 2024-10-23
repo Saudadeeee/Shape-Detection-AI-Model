@@ -1,10 +1,14 @@
+
+
 #include "MLPPredict.h"
 #include "ActivationFunctions.h"
 
+// Dự đoán đầu ra
 float MLP::predict(const std::vector<float>& inputs) const {
     std::vector<float> current_layer = inputs;
-
+    // Duyệt qua các lớp ẩn
     for (int i = 0; i < hidden_layers.size(); ++i) {
+        
         std::vector<float> next_layer(hidden_layers[i].size(), 0.0);
         for (int j = 0; j < hidden_layers[i].size(); ++j) {
             float sum = biases_hidden[i][j];

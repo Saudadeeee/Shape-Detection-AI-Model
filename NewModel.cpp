@@ -1,6 +1,6 @@
 
 // Đây là file chính của chương trình, nơi chúng ta sẽ sử dụng mô hình MLP để giải quyết bài toán XOR logic gate
-// Biên dịch các tệp bằng g++ -o NewModel NewModel.cpp MLP.cpp MLPTrain.cpp MLPPredict.cpp ActivationFunctions.cpp
+// Biên dịch các tệp bằng g++ -o NewModel NewModel.cpp MLP.cpp MLPTrain.cpp MLPPredict.cpp ActivationFunctions.cpp ImageProcessor.cpp
 // Sau đó chạy chương trình bằng g++ ./NewModel
 //Tại vì t lười dùng makefile nên là phải làm thế này
 //Nếu dùng makefile thì chỉ cần gõ make và ./NewModel là xong
@@ -36,7 +36,7 @@ int main() {
     }
 
     // Nhãn đầu ra tương ứng
-    vector<float> labels = {1, 0, 1, 1};  // Giả sử tất cả đều là hình vuông trừ số 2
+    vector<float> labels = {1, 0, 1, 1, 1, 1, 0, 0,0 ,0}; // 1: Hình vuông, 0: Không phải hình vuông
 
      // Khởi tạo mô hình MLP với 2 input, 10 lớp ẩn (mỗi lớp 10 nơ-ron), tốc độ học 0.1
     vector<int> layer_sizes = {static_cast<int>(training_data[0].size()), 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 1}; // Kích thước đầu vào, 10 lớp ẩn, 1 output
