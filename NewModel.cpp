@@ -36,8 +36,13 @@ int main() {
     }
 
     // Nhãn đầu ra tương ứng
-    vector<float> labels = {1, 0, 1, 1, 1, 1, 0, 0,0 ,0}; // 1: Hình vuông, 0: Không phải hình vuông
+    vector<float> labels = {0, 1, 0, 0, 0, 0, 1, 1, 2, 2}; //0:Cho hinh vuong, 1:Cho hinh tron  ,2:Cho hinh tam giac
 
+
+    if (training_data.size() != labels.size()) {
+        cerr << "Số lượng mẫu và nhãn không khớp!" << endl;
+     
+    }
      // Khởi tạo mô hình MLP với 2 input, 10 lớp ẩn (mỗi lớp 10 nơ-ron), tốc độ học 0.1
     vector<int> layer_sizes = {static_cast<int>(training_data[0].size()), 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 1}; // Kích thước đầu vào, 10 lớp ẩn, 1 output
     MLP mlp(layer_sizes, 0.1);
@@ -47,16 +52,16 @@ int main() {
 
     // Kiểm tra dự đoán
     for (size_t i = 0; i < training_data.size(); ++i) {
-        float prediction = mlp.predict(training_data[i]);
+        int prediction = mlp.predict(training_data[i]);
         cout << "Du doan cho anh " << i + 1 << ": " << prediction << " (";
-        if (prediction > 0.5) {
+        if (prediction == 0) {
             cout << "Hinh vuong";
+        } else if (prediction == 1) {
+            cout << "Hinh tron";
         } else {
-            cout << "Khong phai hinh vuong";
+            cout << "Hinh tam giac";
         }
         cout << ")" << endl;
     }
-
-   return 0;
 
 }

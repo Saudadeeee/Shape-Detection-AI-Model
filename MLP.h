@@ -19,14 +19,14 @@ public:
     std::vector<std::vector<std::vector<float>>> weights_hidden; //vector 3 chiều để lưu trữ trọng số của các lớp ẩn. Mỗi lớp ẩn có một ma trận trọng số.
     std::vector<std::vector<float>> biases_hidden; //vector 2 chiều để lưu trữ bias của các lớp ẩn. Mỗi lớp ẩn có một vector bias
     std::vector<std::vector<float>> hidden_layers; // vector 2 chiều để lưu trữ giá trị của các nơ-ron ở các lớp ẩn
-    std::vector<float> weights_output; //vector để lưu trữ trọng số của lớp đầu ra
-    float bias_output; // Bias của lớp đầu ra
+    std::vector<std::vector<float>> weights_output; //vector để lưu trữ trọng số của lớp đầu ra
+    std::vector<float> bias_output; // Bias của lớp đầu ra
     float learning_rate;
 
     MLP(const std::vector<int>& layer_sizes, float lr); //Nhap vao vector voi kich thuoc cac lop va learning rate
 
     // Dự đoán đầu ra
-    float predict(const std::vector<float>& inputs) const ;//dự đoán đầu ra dựa trên các đầu vào
+    float predict(const std::vector<float>& inputs) const;//dự đoán đầu ra dựa trên các đầu vào
 
     // Huấn luyện mô hình
     void train(const std::vector<std::vector<float>>& training_data, const std::vector<float>& labels, int epochs);//huấn luyện mô hình với dữ liệu huấn luyện, nhãn và số lượng epochs.

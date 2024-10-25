@@ -2,7 +2,7 @@
 
 #include "MLPPredict.h"
 #include "ActivationFunctions.h"
-
+#include <algorithm>
 // Dự đoán đầu ra
 float MLP::predict(const std::vector<float>& inputs) const {
     std::vector<float> current_layer = inputs;
@@ -20,9 +20,17 @@ float MLP::predict(const std::vector<float>& inputs) const {
         current_layer = next_layer;
     }
 
-    float output_sum = bias_output;
+    std::vector<float> output_layer(3, 0.0); // 3 lớp đầu ra cho 3 hình dạng
     for (int i = 0; i < current_layer.size(); ++i) {
-        output_sum += current_layer[i] * weights_output[i];
+        for (int j = 0; j < 3; ++j) {
+            output_layer[j] += current_layer[i] * weights_output[i][j];
+        }
     }
-    return sigmoid(output_sum);
+
+    for (int j = 0; j < 3; ++j) {
+        output_layer[j] = sigmoid(output_layer[j]);
+    }
+
+    // Tìm nhãn có giá trị lớn nhất
+    return std::distance(output_layer.begin(), std::max_element(output_layer.begin(), output_layer.end()));
 }

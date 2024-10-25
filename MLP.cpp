@@ -8,8 +8,6 @@
 
 #include "MLP.h"
 #include "ActivationFunctions.h"
-#include "MLPPredict.h"
-#include  "MLPTrain.h"
 #include <cstdlib> //Chỉ để sử dụng hàm rand()
 #include <ctime>//Tương tụư như trên, bỏ cũng được
 
@@ -39,13 +37,16 @@ MLP::MLP(const std::vector<int>& layer_sizes, float lr) {
         }
     }
     //Khởi tạo trọng số và bias cho lớp đầu ra
-    weights_output.resize(layer_sizes.back());
-    //Vòng lặp qua các nơ-ron của lớp đầu ra.
+    weights_output.resize(layer_sizes.back(), std::vector<float>(3)); // 3 lớp đầu ra cho 3 hình dạng
     for (int i = 0; i < layer_sizes.back(); ++i) {
-        weights_output[i] = static_cast<float>(std::rand()) / RAND_MAX - 0.5f; // Khởi tạo ngẫu nhiên trong khoảng [-0.5, 0.5]
+        for (int j = 0; j < 3; ++j) {
+            weights_output[i][j] = static_cast<float>(std::rand()) / RAND_MAX - 0.5f; // Khởi tạo ngẫu nhiên trong khoảng [-0.5, 0.5]
+        }
     }
-    bias_output = static_cast<float>(std::rand()) / RAND_MAX - 0.5f; // Khởi tạo ngẫu nhiên trong khoảng [-0.5, 0.5]
-    learning_rate = lr;
+    bias_output.resize(3);
+    for (int j = 0; j < 3; ++j) {
+        bias_output[j] = static_cast<float>(std::rand()) / RAND_MAX - 0.5f; // Khởi tạo ngẫu nhiên trong khoảng [-0.5, 0.5]
+    }
 }
 //Đã tách hàm dự đoán ra khỏi hàm huấn luyện
 

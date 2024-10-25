@@ -26,27 +26,49 @@ void MLP::train(const std::vector<std::vector<float>>& training_data , const std
                 layer_outputs[j + 1] = next_layer;
             }
 
-            float prediction = predict(training_data[i]);
-            float error_output = labels[i] - prediction;
-
-            // Bước 2: Điều chỉnh trọng số của lớp đầu ra
-            for (int j = 0; j < weights_output.size(); ++j) {
-                float delta_output = error_output * sigmoid_derivative(prediction);
-                weights_output[j] += learning_rate * delta_output * layer_outputs.back()[j];
+             std::vector<float> output_layer(3, 0.0); // 3 lớp đầu ra cho 3 hình dạng
+            for (int j = 0; j < layer_outputs.back().size(); ++j) {
+                for (int k = 0; k < 3; ++k) {
+                    output_layer[k] += layer_outputs.back()[j] * weights_output[j][k];
+                }
             }
-            bias_output += learning_rate * error_output * sigmoid_derivative(prediction);
 
-            // Bước 3: Điều chỉnh trọng số của các lớp ẩn
-            std::vector<float> error_hidden_next(weights_output.size(), 0.0);
+            for (int k = 0; k < 3; ++k) {
+                output_layer[k] = sigmoid(output_layer[k]);
+            }
+
+            // Bước 2: Tính toán lỗi
+            std::vector<float> target_output(3, 0.0);
+            target_output[labels[i]] = 1.0;
+            std::vector<float> error_output(3, 0.0);
+            for (int k = 0; k < 3; ++k) {
+                error_output[k] = target_output[k] - output_layer[k];
+            }
+
+            // Bước 3: Điều chỉnh trọng số của lớp đầu ra
+            for (int j = 0; j < layer_outputs.back().size(); ++j) {
+                for (int k = 0; k < 3; ++k) {
+                    float delta_output = error_output[k] * sigmoid_derivative(output_layer[k]);
+                    weights_output[j][k] += learning_rate * delta_output * layer_outputs.back()[j];
+                }
+            }
+            for (int k = 0; k < 3; ++k) {
+                bias_output[k] += learning_rate * error_output[k] * sigmoid_derivative(output_layer[k]);
+            }
+
+            // Bước 4: Điều chỉnh trọng số của các lớp ẩn
+            std::vector<std::vector<float>> error_hidden_next(hidden_layers.size(), std::vector<float>(hidden_layers.back().size(), 0.0));
             for (int j = hidden_layers.size() - 1; j >= 0; --j) {
                 std::vector<float> error_hidden(hidden_layers[j].size(), 0.0);
                 for (int k = 0; k < hidden_layers[j].size(); ++k) {
                     float error = 0.0;
                     if (j == hidden_layers.size() - 1) {
-                        error = error_output * sigmoid_derivative(prediction) * weights_output[k];
+                        for (int l = 0; l < 3; ++l) {
+                            error += error_output[l] * sigmoid_derivative(output_layer[l]) * weights_output[k][l];
+                        }
                     } else {
                         for (int l = 0; l < hidden_layers[j + 1].size(); ++l) {
-                            error += error_hidden_next[l] * weights_hidden[j + 1][k][l];
+                            error += error_hidden_next[j + 1][l] * weights_hidden[j + 1][k][l];
                         }
                     }
                     error_hidden[k] = error * relu_derivative(layer_outputs[j + 1][k]);
@@ -55,7 +77,7 @@ void MLP::train(const std::vector<std::vector<float>>& training_data , const std
                     }
                     biases_hidden[j][k] += learning_rate * error_hidden[k];
                 }
-                error_hidden_next = error_hidden;
+                error_hidden_next[j] = error_hidden;
             }
         }
     }
