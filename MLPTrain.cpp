@@ -19,7 +19,7 @@ void MLP::train(const std::vector<std::vector<float>>& training_data , const std
         std::shuffle(indices.begin(), indices.end(), engine); // Shuffle the indices
 
         float total_loss = 0.0; // Initialize total loss for the epoch
-
+ 
         //Vòng lặp qua các mẫu dữ liệu huấn luyện.
         for (int idx : indices) {
             const auto& input = training_data[idx];

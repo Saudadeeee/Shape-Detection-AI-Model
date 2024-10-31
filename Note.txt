@@ -8,7 +8,7 @@ Chỉ cần hội tụ được về 0 là coi như xong công việc.
 
 Giảm số lượng lớp ẩn và node trong mỗi lớp ẩn ,thử giảm xuống còn 2-3 lớp ẩn với khoảng 5-8 node mỗi lớp ẩn.
 
-Tăng kích thước mẫu đầu vào hoặc thử data augmentation: 
+Tăng kích thước mẫu đầu vào hoặc thử data augmentation: (Tăng lên số lượng 60)
 Nếu có thể, tăng số lượng mẫu input sẽ giúp model học được các đặc điểm tốt hơn.
  Bạn có thể tạo thêm các mẫu bằng cách biến đổi nhỏ hình khối (dời hình, xoay, thêm nhiễu nhỏ).
 
@@ -17,4 +17,3 @@ thử giảm nhẹ (như 0.005 hoặc 0.001) nếu model chưa hội tụ tốt.
 
 Số lượng epochs: Nếu giảm các lớp ẩn và nodes, thử giảm epochs xuống 10,000 và xem kết quả cải thiện như thế nào.
  Việc huấn luyện với epochs quá cao có thể làm model dễ bị overfit khi dữ liệu vào ít
- 
