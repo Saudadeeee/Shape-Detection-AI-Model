@@ -1,0 +1,6 @@
+Thì hiện tại đã đổi hàm buid và cout ra phần loss mỗi 100 output
+Nhưng có một vấn đề là output của cái loss lại đang tăng
+Thì tức là hàm nó không hội tụ đúng không? 
+Đó thì là thảnh ra nó sẽ ảnh hưởng tới cái output của mình thành sai hết
+Việc giờ còn fix mấy cái hàm tính toán xem mấy hàm đấy sai ở đâu
+Chỉ cần hội tụ được về 0 là coi như xong công việc.
