@@ -51,8 +51,8 @@ int main() {
     }
 
     // Khởi tạo mô hình MLP với số lượng đầu vào tương ứng với kích thước ảnh, 10 lớp ẩn (mỗi lớp 10 nơ-ron), tốc độ học 0.1
-    vector<int> layer_sizes = {static_cast<int>(training_data[0].size()), 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 3}; // Kích thước đầu vào, 10 lớp ẩn, 3 output
-    MLP mlp(layer_sizes, 0.1);
+    vector<int> layer_sizes = {static_cast<int>(training_data[0].size()), 5 , 5, 5 , 5, 3}; // Kích thước đầu vào, 10 lớp ẩn, 3 output
+    MLP mlp(layer_sizes, 0.01);
 
     // Huấn luyện mô hình trong 10000 epochs
     mlp.train(training_data, labels, 10000);
