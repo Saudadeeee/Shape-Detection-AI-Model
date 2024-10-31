@@ -1,7 +1,7 @@
 // Định nghĩa các phương thức của lớp MLP
 //File này nói chung dùng để khởi tạo trọng số và bias cho mô hình mạng nơ-ron
 //PS D:\Code\SourceCode\Project\AI> g++ ./NewModel
-
+//Xây dựng neutron mạng nơ-ron với 2 input, 10 lớp ẩn 
 
 
 
@@ -47,8 +47,8 @@ MLP::MLP(const std::vector<int>& layer_sizes, float lr) {
     for (int j = 0; j < 3; ++j) {
         bias_output[j] = static_cast<float>(std::rand()) / RAND_MAX - 0.5f; // Khởi tạo ngẫu nhiên trong khoảng [-0.5, 0.5]
     }
+    learning_rate = lr;
 }
 //Đã tách hàm dự đoán ra khỏi hàm huấn luyện
 
 //Đã tachs hàm train ra
-    

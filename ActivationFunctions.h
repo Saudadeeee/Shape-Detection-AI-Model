@@ -3,6 +3,8 @@
 #define ACTIVATION_FUNCTIONS_H
 
 #include <cmath>
+#include <vector>
+#include <algorithm> // Add this line to include std::max_element
 
 // Hàm kích hoạt ReLU
 float relu(float x);
@@ -21,4 +23,7 @@ float sigmoid_derivative(float x);
 
 // // Đạo hàm của Tanh
 // float tanh_derivative(float x);
+//Hàm kích hoạt softmax
+std::vector<float> softmax(const std::vector<float>& x);
+
 #endif // ACTIVATION_FUNCTIONS_H

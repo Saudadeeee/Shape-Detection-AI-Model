@@ -2,6 +2,9 @@
 // được sử dụng trong mô hình mạng nơ-ron theo toán
 
 #include "ActivationFunctions.h"
+#include <algorithm>
+#include <numeric>
+#include <vector>
 
 float relu(float x) {
     return x > 0 ? x : 0;//Hàm này trả về giá trị của x nếu x lớn hơn 0, ngược lại trả về 0
@@ -19,10 +22,20 @@ float sigmoid_derivative(float x) {
     return sigmoid(x) * (1 - sigmoid(x));//Đạo hàm này cũng được sử dụng trong quá trình lan truyền ngược để cập nhật trọng số.
 }
 
-// float tanh(float x) {
-//     return std::tanh(x);
-// }
+// Hàm softmax
+std::vector<float> softmax(const std::vector<float>& x) {
+    std::vector<float> result(x.size());
+    float max_val = *std::max_element(x.begin(), x.end());
+    float sum = 0.0;
 
-// float tanh_derivative(float x) {
-//     return 1 - std::tanh(x) * std::tanh(x);
-// }
+    for (size_t i = 0; i < x.size(); ++i) {
+        result[i] = std::exp(x[i] - max_val);
+        sum += result[i];
+    }
+
+    for (size_t i = 0; i < x.size(); ++i) {
+        result[i] /= sum;
+    }
+
+    return result;
+}

@@ -1,5 +1,3 @@
-
-
 #include "MLPPredict.h"
 #include "ActivationFunctions.h"
 #include <algorithm>
@@ -27,9 +25,7 @@ float MLP::predict(const std::vector<float>& inputs) const {
         }
     }
 
-    for (int j = 0; j < 3; ++j) {
-        output_layer[j] = sigmoid(output_layer[j]);
-    }
+    output_layer = softmax(output_layer);
 
     // Tìm nhãn có giá trị lớn nhất
     return std::distance(output_layer.begin(), std::max_element(output_layer.begin(), output_layer.end()));
