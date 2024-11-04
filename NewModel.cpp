@@ -56,6 +56,10 @@ int main() {
     // Khởi tạo mô hình MLP với số lượng đầu vào tương ứng với kích thước ảnh, 5 lớp ẩn (mỗi lớp 5 nơ-ron), tốc độ học 0.01
     vector<int> layer_sizes = {static_cast<int>(training_data[0].size()), 5, 5, 5, 5, 3}; // Kích thước đầu vào, 5 lớp ẩn, 3 output
 
+    // Debug print to check dimensions
+    cout << "First training sample size: " << training_data[0].size() << endl;
+    cout << "Expected input size: " << layer_sizes[0] << endl;
+
     // Kiểm tra kích thước đầu vào
     if (training_data[0].size() != layer_sizes[0]) {
         cerr << "Kích thước đầu vào không khớp với mô hình MLP!" << endl;

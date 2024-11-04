@@ -159,7 +159,9 @@ void MLP::train(const std::vector<std::vector<float>>& training_data , const std
 
 float MLP::predict(const std::vector<float>& inputs) const {
     std::vector<float> current_layer = inputs;
+    std::cout << "Input size: " << inputs.size() << std::endl;
     for (int i = 0; i < hidden_layers.size(); ++i) {
+        std::cout << "Layer " << i << " size: " << hidden_layers[i].size() << std::endl;
         std::vector<float> next_layer(hidden_layers[i].size(), 0.0);
         for (int j = 0; j < hidden_layers[i].size(); ++j) {
             float sum = biases_hidden[i][j];
