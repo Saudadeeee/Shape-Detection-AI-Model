@@ -1,29 +1,44 @@
-//khai báo các hàm kích hoạt và đạo hàm của chúng được sử dụng trong mô hình mạng nơ-ron theo toán
+//File này để định nghĩa các hàm kích hoạt mình sẽ sử dụng trong mô hình mạng nơ-ron
+
 #ifndef ACTIVATION_FUNCTIONS_H
 #define ACTIVATION_FUNCTIONS_H
 
-#include <cmath>
 #include <vector>
-#include <algorithm> // Add this line to include std::max_element
+#include <algorithm>
+#include <numeric>
+#include <cmath>
 
-// Hàm kích hoạt ReLU
-float relu(float x);
+float relu(float x) { //Hàm này trả về giá trị của x nếu x lớn hơn 0, ngược lại trả về 0
+    return x > 0 ? x : 0;
+}
+                                //Hiểu đơn giản nó là đạo hàm của hàm relu
+float relu_derivative(float x) { //sử dụng trong quá trình lan truyền ngược để cập nhật trọng số.
+    return x > 0 ? 1 : 0;
+}
 
-// Đạo hàm của ReLU
-float relu_derivative(float x);
+float sigmoid(float x) { //Hiện chưa sử dụng đến hàm sigmoid nhưng nếu muốn vẫn có thể cho nó vào mô hình
+    return 1 / (1 + exp(-x));
+}
 
-// Hàm kích hoạt Sigmoid
-float sigmoid(float x);
+float sigmoid_derivative(float x) {
+    return sigmoid(x) * (1 - sigmoid(x)); //Tương tự , là đạo hàm của sigmoid
+}
 
-// Đạo hàm của Sigmoid
-float sigmoid_derivative(float x);
-//Tùy xem có muốn dùng thêm hàm kích hoạt không không thì 2 hàm dưới này có thể bỏ đi
-// // Hàm kích hoạt Tanh
-// float tanh(float x);
+std::vector<float> softmax(const std::vector<float>& x) {
+    std::vector<float> result(x.size());
+    float max_val = *std::max_element(x.begin(), x.end());
+    float sum = 0.0;
 
-// // Đạo hàm của Tanh
-// float tanh_derivative(float x);
-//Hàm kích hoạt softmax
-std::vector<float> softmax(const std::vector<float>& x);
+    for (size_t i = 0; i < x.size(); ++i) {
+        result[i] = std::exp(x[i] - max_val);
+        sum += result[i];
+    }
+
+    for (size_t i = 0; i < x.size(); ++i) {
+        result[i] /= sum;
+    }
+
+    return result;
+}
 
 #endif // ACTIVATION_FUNCTIONS_H
