@@ -87,10 +87,6 @@ void MLP::train(const std::vector<std::vector<float>>& training_data , const std
                 for (int k = 0; k < hidden_layers[j].size(); ++k) {
                     float sum = biases_hidden[j][k];
                     for (int l = 0; l < layer_outputs[j].size(); ++l) {
-                        if (l >= weights_hidden[j].size() || k >= weights_hidden[j][l].size()) {
-                            std::cerr << "Index out of bounds: weights_hidden[" << j << "][" << l << "][" << k << "]" << std::endl;
-                            return;
-                        }
                         sum += layer_outputs[j][l] * weights_hidden[j][l][k];
                     }
                     next_layer[k] = relu(sum);
@@ -159,17 +155,11 @@ void MLP::train(const std::vector<std::vector<float>>& training_data , const std
 
 float MLP::predict(const std::vector<float>& inputs) const {
     std::vector<float> current_layer = inputs;
-    std::cout << "Input size: " << inputs.size() << std::endl;
     for (int i = 0; i < hidden_layers.size(); ++i) {
-        std::cout << "Layer " << i << " size: " << hidden_layers[i].size() << std::endl;
         std::vector<float> next_layer(hidden_layers[i].size(), 0.0);
         for (int j = 0; j < hidden_layers[i].size(); ++j) {
             float sum = biases_hidden[i][j];
             for (int k = 0; k < current_layer.size(); ++k) {
-                if (k >= weights_hidden[i].size() || j >= weights_hidden[i][k].size()) {
-                    std::cerr << "Index out of bounds: weights_hidden[" << i << "][" << k << "][" << j << "]" << std::endl;
-                    return -1; // Return an error value
-                }
                 sum += current_layer[k] * weights_hidden[i][k][j];
             }
             next_layer[j] = relu(sum);

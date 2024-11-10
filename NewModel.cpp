@@ -1,7 +1,7 @@
-// Biên dịch các tệp bằng g++ -o NewModel NewModel.cpp MLP.cpp MLPTrain.cpp MLPPredict.cpp ActivationFunctions.cpp ImageProcessor.cpp
-// Sau đó chạy chương trình bằng ./NewModel
-//Tại vì t lười dùng makefile nên là phải làm thế này
-//Nếu dùng makefile thì chỉ cần gõ make và ./NewModel là xong
+// Chạy tệp bình thường là được tại t đã rút gọn lại rồi
+
+
+
 //Cái này nó rất hay bị lỗi nên là nếu lỗi thì cứ biên dịch lại mấy lần là được
 //Nếu không được thì hỏi t
 
@@ -25,6 +25,15 @@ int main() {
         return 1;
     }
     cout << "Number of images: " << images.size() << endl;
+
+    // Ensure all images have the same size
+    size_t image_size = images[0].size() * images[0][0].size();
+    for (const auto& image : images) {
+        if (image.size() * image[0].size() != image_size) {
+            cerr << "Kích thước ảnh không đồng nhất!" << endl;
+            return 1;
+        }
+    }
 
     // Chuyển đổi ảnh thành vector 1 chiều
     vector<vector<float>> training_data;
@@ -54,7 +63,7 @@ int main() {
     cout << "Number of training samples: " << training_data.size() << endl;
 
     // Khởi tạo mô hình MLP với số lượng đầu vào tương ứng với kích thước ảnh, 5 lớp ẩn (mỗi lớp 5 nơ-ron), tốc độ học 0.01
-    vector<int> layer_sizes = {static_cast<int>(training_data[0].size()), 5, 5, 5, 5, 3}; // Kích thước đầu vào, 5 lớp ẩn, 3 output
+    vector<int> layer_sizes = {static_cast<int>(training_data[0].size()), 5, 5, 5, 5, 5, 3}; // Kích thước đầu vào, 5 lớp ẩn, 3 output
 
     // Debug print to check dimensions
     cout << "First training sample size: " << training_data[0].size() << endl;
