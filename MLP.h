@@ -13,8 +13,8 @@
 class MLP {
 public:
     MLP(const std::vector<int>& layer_sizes, float lr);
-    void train(const std::vector<std::vector<float>>& training_data, const std::vector<float>& labels, int epochs);
-    float predict(const std::vector<float>& inputs) const;
+    void train(const std::vector<std::vector<float>>& training_data, const std::vector<float>& labels, int epochs, const std::vector<std::vector<float>>& validation_data, const std::vector<float>& validation_labels);
+    std::vector<float> predict(const std::vector<float>& inputs) const; // Change return type to vector<float>
 
 private:
     std::vector<std::vector<std::vector<float>>> weights_hidden;
@@ -23,6 +23,7 @@ private:
     std::vector<std::vector<float>> weights_output;
     std::vector<float> bias_output;
     float learning_rate;
+    float l2_lambda = 0.01; // L2 regularization parameter
 };
 
 // Implementation of MLP methods
@@ -65,7 +66,7 @@ MLP::MLP(const std::vector<int>& layer_sizes, float lr) {
     learning_rate = lr;
 }
 
-void MLP::train(const std::vector<std::vector<float>>& training_data , const std::vector<float>& labels, int epochs) {
+void MLP::train(const std::vector<std::vector<float>>& training_data , const std::vector<float>& labels, int epochs, const std::vector<std::vector<float>>& validation_data, const std::vector<float>& validation_labels) {
     std::vector<int> indices(training_data.size());
     std::iota(indices.begin(), indices.end(), 0); // Fill indices with 0, 1, ..., training_data.size()-1
     std::default_random_engine engine(std::random_device{}());
@@ -87,6 +88,10 @@ void MLP::train(const std::vector<std::vector<float>>& training_data , const std
                 for (int k = 0; k < hidden_layers[j].size(); ++k) {
                     float sum = biases_hidden[j][k];
                     for (int l = 0; l < layer_outputs[j].size(); ++l) {
+                          if (l >= weights_hidden[j].size() || k >= weights_hidden[j][l].size()) {
+                            std::cerr << "Index out of bounds: weights_hidden[" << j << "][" << l << "][" << k << "]" << std::endl;
+                            return;
+                        }
                         sum += layer_outputs[j][l] * weights_hidden[j][l][k];
                     }
                     next_layer[k] = relu(sum);
@@ -145,21 +150,54 @@ void MLP::train(const std::vector<std::vector<float>>& training_data , const std
                 }
                 error_hidden_next[j] = error_hidden;
             }
+
+            // Apply L2 regularization
+            for (auto& layer : weights_hidden) {
+                for (auto& neuron : layer) {
+                    for (auto& weight : neuron) {
+                        weight -= learning_rate * l2_lambda * weight;
+                    }
+                }
+            }
+            for (auto& neuron : weights_output) {
+                for (auto& weight : neuron) {
+                    weight -= learning_rate * l2_lambda * weight;
+                }
+            }
         }
 
         if (epoch % 100 == 0) { // Print loss every 100 epochs
             std::cout << "Epoch " << epoch << ", Loss: " << total_loss / training_data.size() << std::endl;
+
+            // Calculate validation loss
+            float validation_loss = 0.0;
+            for (size_t i = 0; i < validation_data.size(); ++i) {
+                std::vector<float> output_layer = predict(validation_data[i]);
+                std::vector<float> target_output(3, 0.0);
+                target_output[validation_labels[i]] = 1.0;
+                for (int k = 0; k < 3; ++k) {
+                    float error = target_output[k] - output_layer[k];
+                    validation_loss += error * error;
+                }
+            }
+            std::cout << "Validation Loss: " << validation_loss / validation_data.size() << std::endl;
         }
     }
 }
 
-float MLP::predict(const std::vector<float>& inputs) const {
+std::vector<float> MLP::predict(const std::vector<float>& inputs) const { // Change return type to vector<float>
     std::vector<float> current_layer = inputs;
+    std::cout << "Input size: " << inputs.size() << std::endl;
     for (int i = 0; i < hidden_layers.size(); ++i) {
+        std::cout << "Layer " << i << " size: " << hidden_layers[i].size() << std::endl;
         std::vector<float> next_layer(hidden_layers[i].size(), 0.0);
         for (int j = 0; j < hidden_layers[i].size(); ++j) {
             float sum = biases_hidden[i][j];
             for (int k = 0; k < current_layer.size(); ++k) {
+                if (k >= weights_hidden[i].size() || j >= weights_hidden[i][k].size()) {
+                    std::cerr << "Index out of bounds: weights_hidden[" << i << "][" << k << "][" << j << "]" << std::endl;
+                    return {}; // Return an empty vector
+                }
                 sum += current_layer[k] * weights_hidden[i][k][j];
             }
             next_layer[j] = relu(sum);
@@ -176,7 +214,7 @@ float MLP::predict(const std::vector<float>& inputs) const {
 
     output_layer = softmax(output_layer);
 
-    return std::distance(output_layer.begin(), std::max_element(output_layer.begin(), output_layer.end()));
+    return output_layer; // Return the softmax output
 }
 
 #endif // MLP_H

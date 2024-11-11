@@ -63,8 +63,8 @@ int main() {
     cout << "Number of training samples: " << training_data.size() << endl;
 
     // Khởi tạo mô hình MLP với số lượng đầu vào tương ứng với kích thước ảnh, 5 lớp ẩn (mỗi lớp 5 nơ-ron), tốc độ học 0.01
-    vector<int> layer_sizes = {static_cast<int>(training_data[0].size()), 5, 5, 5, 5, 5, 3}; // Kích thước đầu vào, 5 lớp ẩn, 3 output
-
+    vector<int> layer_sizes = {static_cast<int>(training_data[0].size()), 10, 10, 10, 10, 10, 3}; // Increase neurons in hidden layers
+    
     // Debug print to check dimensions
     cout << "First training sample size: " << training_data[0].size() << endl;
     cout << "Expected input size: " << layer_sizes[0] << endl;
@@ -75,22 +75,30 @@ int main() {
         return 1;
     }
 
-    MLP mlp(layer_sizes, 0.01);
+    MLP mlp(layer_sizes, 0.001); // Reduce learning rate
     cout << "MLP model initialized." << endl;
+
+    // Split data into training and validation sets
+    size_t validation_size = training_data.size() / 5;
+    vector<vector<float>> validation_data(training_data.end() - validation_size, training_data.end());
+    vector<float> validation_labels(labels.end() - validation_size, labels.end());
+    training_data.resize(training_data.size() - validation_size);
+    labels.resize(labels.size() - validation_size);
 
     // Huấn luyện mô hình trong 10000 epochs
     cout << "Training started." << endl;
-    mlp.train(training_data, labels, 10000);
+    mlp.train(training_data, labels, 50000, validation_data, validation_labels); // Increase number of epochs and pass validation data to train method
     cout << "Training completed." << endl;
 
     // Kiểm tra dự đoán
     cout << "Predictions:" << endl;
     for (size_t i = 0; i < training_data.size(); ++i) {
-        int prediction = mlp.predict(training_data[i]);
-        cout << "Du doan cho anh " << i + 1 << ": " << prediction << " (";
-        if (prediction == 0) {
+        vector<float> prediction = mlp.predict(training_data[i]);
+        int predicted_class = std::distance(prediction.begin(), std::max_element(prediction.begin(), prediction.end()));
+        cout << "Du doan cho anh " << i + 1 << ": " << predicted_class << " (";
+        if (predicted_class == 0) {
             cout << "Hinh vuong";
-        } else if (prediction == 1) {
+        } else if (predicted_class == 1) {
             cout << "Hinh tron";
         } else {
             cout << "Hinh tam giac";
