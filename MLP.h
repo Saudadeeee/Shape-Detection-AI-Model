@@ -14,7 +14,8 @@ class MLP {
 public:
     MLP(const std::vector<int>& layer_sizes, float lr);
     void train(const std::vector<std::vector<float>>& training_data, const std::vector<float>& labels, int epochs, const std::vector<std::vector<float>>& validation_data, const std::vector<float>& validation_labels);
-    std::vector<float> predict(const std::vector<float>& inputs) const; // Change return type to vector<float>
+    std::vector<float> predict(const std::vector<float>& inputs) const;
+    void setLearningRate(float lr); // Add method to set learning rate
 
 private:
     std::vector<std::vector<std::vector<float>>> weights_hidden;
@@ -31,38 +32,36 @@ private:
 MLP::MLP(const std::vector<int>& layer_sizes, float lr) {
     std::srand(std::time(0)); // Khởi tạo seed cho số ngẫu nhiên
     int num_layers = layer_sizes.size();
-    weights_hidden.resize(num_layers - 1); //Thay đổi kích thước của vector weights_hidden để chứa trọng số của các lớp ẩn.
-    biases_hidden.resize(num_layers - 1);//Thay đổi kích thước của vector biases_hidden để chứa bias của các lớp ẩn.
-    hidden_layers.resize(num_layers - 1); //Thay đổi kích thước của vector hidden_layers để chứa giá trị của các nơ-ron ở các lớp ẩn.
-    //Lặp qua các lớp ẩn để khởi tạo trọng số và bias
+    weights_hidden.resize(num_layers - 1);
+    biases_hidden.resize(num_layers - 1);
+    hidden_layers.resize(num_layers - 1);
     for (int i = 0; i < num_layers - 1; ++i) {
-        weights_hidden[i].resize(layer_sizes[i], std::vector<float>(layer_sizes[i + 1]));//Thay đổi kích thước của ma trận trọng số cho lớp ẩn thứ i
-        biases_hidden[i].resize(layer_sizes[i + 1]); //Thay đổi kích thước của vector bias cho lớp ẩn thứ i
-        hidden_layers[i].resize(layer_sizes[i + 1], 0.0); //Thay đổi kích thước của vector hidden_layers cho lớp ẩn thứ i
-        //Vòng lặp qua các nơ-ron của lớp ẩn thứ i
-        for (int j = 0; j < layer_sizes[i]; ++j) {//Vòng lặp qua các nơ-ron của lớp thứ i
-            for (int k = 0; k < layer_sizes[i + 1]; ++k) {//Vòng lặp qua các nơ-ron của lớp tiếp theo.
-                weights_hidden[i][j][k] = static_cast<float>(std::rand()) / RAND_MAX - 0.5f; // Khởi tạo ngẫu nhiên trong khoảng [-0.5, 0.5]
-            //Mục đích của cái static_cast này là để chuyển đổi kiểu dữ liệu từ int sang float
-            //Nói chung là để ép kiểu
+        weights_hidden[i].resize(layer_sizes[i], std::vector<float>(layer_sizes[i + 1]));
+        biases_hidden[i].resize(layer_sizes[i + 1]);
+        hidden_layers[i].resize(layer_sizes[i + 1], 0.0);
+        for (int j = 0; j < layer_sizes[i]; ++j) {
+            for (int k = 0; k < layer_sizes[i + 1]; ++k) {
+                weights_hidden[i][j][k] = static_cast<float>(std::rand()) / RAND_MAX * 0.01f; // Smaller weight initialization
             }
         }
-        // Vòng lặp qua các nơ-ron của lớp tiếp theo.
         for (int j = 0; j < layer_sizes[i + 1]; ++j) {
-            biases_hidden[i][j] = static_cast<float>(std::rand()) / RAND_MAX - 0.5f; // Khởi tạo ngẫu nhiên trong khoảng [-0.5, 0.5]
+            biases_hidden[i][j] = static_cast<float>(std::rand()) / RAND_MAX * 0.01f; // Smaller bias initialization
         }
     }
-    //Khởi tạo trọng số và bias cho lớp đầu ra
-    weights_output.resize(layer_sizes.back(), std::vector<float>(3)); // 3 lớp đầu ra cho 3 hình dạng
+    weights_output.resize(layer_sizes.back(), std::vector<float>(3));
     for (int i = 0; i < layer_sizes.back(); ++i) {
         for (int j = 0; j < 3; ++j) {
-            weights_output[i][j] = static_cast<float>(std::rand()) / RAND_MAX - 0.5f; // Khởi tạo ngẫu nhiên trong khoảng [-0.5, 0.5]
+            weights_output[i][j] = static_cast<float>(std::rand()) / RAND_MAX * 0.01f; // Smaller weight initialization
         }
     }
     bias_output.resize(3);
     for (int j = 0; j < 3; ++j) {
-        bias_output[j] = static_cast<float>(std::rand()) / RAND_MAX - 0.5f; // Khởi tạo ngẫu nhiên trong khoảng [-0.5, 0.5]
+        bias_output[j] = static_cast<float>(std::rand()) / RAND_MAX * 0.01f; // Smaller bias initialization
     }
+    learning_rate = lr;
+}
+
+void MLP::setLearningRate(float lr) {
     learning_rate = lr;
 }
 
@@ -75,11 +74,16 @@ void MLP::train(const std::vector<std::vector<float>>& training_data , const std
         std::shuffle(indices.begin(), indices.end(), engine); // Shuffle the indices
 
         float total_loss = 0.0; // Initialize total loss for the epoch
- 
+
+        // Decay learning rate
+        if (epoch % 1000 == 0 && epoch != 0) {
+            setLearningRate(learning_rate * 0.9); // Decay learning rate by 10% every 1000 epochs
+        }
+
         for (int idx : indices) {
             const auto& input = training_data[idx];
             float label = labels[idx];
-
+    
             // Forward pass
             std::vector<std::vector<float>> layer_outputs(hidden_layers.size() + 1);
             layer_outputs[0] = input;
@@ -187,17 +191,11 @@ void MLP::train(const std::vector<std::vector<float>>& training_data , const std
 
 std::vector<float> MLP::predict(const std::vector<float>& inputs) const { // Change return type to vector<float>
     std::vector<float> current_layer = inputs;
-    std::cout << "Input size: " << inputs.size() << std::endl;
     for (int i = 0; i < hidden_layers.size(); ++i) {
-        std::cout << "Layer " << i << " size: " << hidden_layers[i].size() << std::endl;
         std::vector<float> next_layer(hidden_layers[i].size(), 0.0);
         for (int j = 0; j < hidden_layers[i].size(); ++j) {
             float sum = biases_hidden[i][j];
             for (int k = 0; k < current_layer.size(); ++k) {
-                if (k >= weights_hidden[i].size() || j >= weights_hidden[i][k].size()) {
-                    std::cerr << "Index out of bounds: weights_hidden[" << i << "][" << k << "][" << j << "]" << std::endl;
-                    return {}; // Return an empty vector
-                }
                 sum += current_layer[k] * weights_hidden[i][k][j];
             }
             next_layer[j] = relu(sum);

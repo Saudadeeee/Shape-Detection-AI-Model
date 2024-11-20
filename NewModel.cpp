@@ -35,6 +35,15 @@ int main() {
         }
     }
 
+    // Normalize the input data
+    for (auto& image : images) {
+        for (auto& row : image) {
+            for (auto& pixel : row) {
+                pixel = pixel / 255.0f; // Normalize pixel values to range [0, 1]
+            }
+        }
+    }
+
     // Chuyển đổi ảnh thành vector 1 chiều
     vector<vector<float>> training_data;
     for (const auto& image : images) {
@@ -50,9 +59,18 @@ int main() {
 
     // Nhãn đầu ra tương ứng
     vector<float> labels = {
-        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, // 20 mẫu hình vuông
-        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, // 20 mẫu hình tròn
-        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2  // 20 mẫu hình tam giác
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+        1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+        2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
     };
 
     // Kiểm tra số lượng mẫu và nhãn
@@ -62,13 +80,9 @@ int main() {
     }
     cout << "Number of training samples: " << training_data.size() << endl;
 
-    // Khởi tạo mô hình MLP với số lượng đầu vào tương ứng với kích thước ảnh, 5 lớp ẩn (mỗi lớp 5 nơ-ron), tốc độ học 0.01
-    vector<int> layer_sizes = {static_cast<int>(training_data[0].size()), 10, 10, 10, 10, 10, 3}; // Increase neurons in hidden layers
+    // Khởi tạo mô hình MLP với số lượng đầu vào tương ứng với kích thước ảnh, 5 lớp ẩn (mỗi lớp 30 nơ-ron), tốc độ học 0.001
+    vector<int> layer_sizes = {static_cast<int>(training_data[0].size()), 30, 30, 30, 30, 30, 3}; // Increase neurons in hidden layers
     
-    // Debug print to check dimensions
-    cout << "First training sample size: " << training_data[0].size() << endl;
-    cout << "Expected input size: " << layer_sizes[0] << endl;
-
     // Kiểm tra kích thước đầu vào
     if (training_data[0].size() != layer_sizes[0]) {
         cerr << "Kích thước đầu vào không khớp với mô hình MLP!" << endl;
@@ -90,12 +104,31 @@ int main() {
     mlp.train(training_data, labels, 50000, validation_data, validation_labels); // Increase number of epochs and pass validation data to train method
     cout << "Training completed." << endl;
 
-    // Kiểm tra dự đoán
-    cout << "Predictions:" << endl;
-    for (size_t i = 0; i < training_data.size(); ++i) {
-        vector<float> prediction = mlp.predict(training_data[i]);
+    // Load new images for prediction
+    vector<vector<vector<int>>> new_images = ImageProcessor::readImages("new_image.txt");
+    if (new_images.empty()) {
+        cerr << "Không đọc được ảnh mới từ file!" << endl;
+        return 1;
+    }
+
+    // Convert new images to 1D vectors and normalize
+    vector<vector<float>> new_data;
+    for (const auto& image : new_images) {
+        vector<float> input;
+        for (const auto& row : image) {
+            for (int pixel : row) {
+                input.push_back(static_cast<float>(pixel) / 255.0f); // Normalize pixel values to range [0, 1]
+            }
+        }
+        new_data.push_back(input);
+    }
+
+    // Predict new images
+    cout << "Predictions for new images:" << endl;
+    for (size_t i = 0; i < new_data.size(); ++i) {
+        vector<float> prediction = mlp.predict(new_data[i]);
         int predicted_class = std::distance(prediction.begin(), std::max_element(prediction.begin(), prediction.end()));
-        cout << "Du doan cho anh " << i + 1 << ": " << predicted_class << " (";
+        cout << "Du doan cho anh moi " << i + 1 << ": " << predicted_class << " (";
         if (predicted_class == 0) {
             cout << "Hinh vuong";
         } else if (predicted_class == 1) {
