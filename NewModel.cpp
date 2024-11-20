@@ -71,6 +71,7 @@ int main() {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+
     };
 
     // Kiểm tra số lượng mẫu và nhãn
@@ -91,7 +92,7 @@ int main() {
 
     MLP mlp(layer_sizes, 0.001); // Reduce learning rate
     cout << "MLP model initialized." << endl;
-
+ 
     // Split data into training and validation sets
     size_t validation_size = training_data.size() / 5;
     vector<vector<float>> validation_data(training_data.end() - validation_size, training_data.end());
