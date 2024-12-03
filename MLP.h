@@ -12,7 +12,7 @@
 
 class MLP {
 public:
-    MLP(const std::vector<int>& layer_sizes, float lr);
+    MLP(const std::vector<int>& layer_sizes, float lr, float dropout_rate = 0.5); // Add dropout rate parameter
     void train(const std::vector<std::vector<float>>& training_data, const std::vector<float>& labels, int epochs, const std::vector<std::vector<float>>& validation_data, const std::vector<float>& validation_labels);
     std::vector<float> predict(const std::vector<float>& inputs) const;
     void setLearningRate(float lr); // Add method to set learning rate
@@ -25,20 +25,24 @@ private:
     std::vector<float> bias_output;
     float learning_rate;
     float l2_lambda = 0.01; // L2 regularization parameter
+    float dropout_rate;
+    std::vector<std::vector<bool>> dropout_masks;
 };
 
 // Implementation of MLP methods
 
-MLP::MLP(const std::vector<int>& layer_sizes, float lr) {
+MLP::MLP(const std::vector<int>& layer_sizes, float lr, float dropout_rate) : dropout_rate(dropout_rate) {
     std::srand(std::time(0)); // Khởi tạo seed cho số ngẫu nhiên
     int num_layers = layer_sizes.size();
     weights_hidden.resize(num_layers - 1);
     biases_hidden.resize(num_layers - 1);
     hidden_layers.resize(num_layers - 1);
+    dropout_masks.resize(num_layers - 1);
     for (int i = 0; i < num_layers - 1; ++i) {
         weights_hidden[i].resize(layer_sizes[i], std::vector<float>(layer_sizes[i + 1]));
         biases_hidden[i].resize(layer_sizes[i + 1]);
         hidden_layers[i].resize(layer_sizes[i + 1], 0.0);
+        dropout_masks[i].resize(layer_sizes[i + 1], true);
         for (int j = 0; j < layer_sizes[i]; ++j) {
             for (int k = 0; k < layer_sizes[i + 1]; ++k) {
                 weights_hidden[i][j][k] = static_cast<float>(std::rand()) / RAND_MAX * 0.01f; // Smaller weight initialization
@@ -69,6 +73,7 @@ void MLP::train(const std::vector<std::vector<float>>& training_data , const std
     std::vector<int> indices(training_data.size());
     std::iota(indices.begin(), indices.end(), 0); // Fill indices with 0, 1, ..., training_data.size()-1
     std::default_random_engine engine(std::random_device{}());
+    std::bernoulli_distribution dropout_dist(dropout_rate);
 
     for (int epoch = 0; epoch < epochs; ++epoch) {
         std::shuffle(indices.begin(), indices.end(), engine); // Shuffle the indices
@@ -83,6 +88,13 @@ void MLP::train(const std::vector<std::vector<float>>& training_data , const std
         for (int idx : indices) {
             const auto& input = training_data[idx];
             float label = labels[idx];
+
+            // Apply dropout
+            for (int j = 0; j < hidden_layers.size(); ++j) {
+                for (int k = 0; k < hidden_layers[j].size(); ++k) {
+                    dropout_masks[j][k] = dropout_dist(engine);
+                }
+            }
     
             // Forward pass
             std::vector<std::vector<float>> layer_outputs(hidden_layers.size() + 1);
@@ -90,15 +102,17 @@ void MLP::train(const std::vector<std::vector<float>>& training_data , const std
             for (int j = 0; j < hidden_layers.size(); ++j) {
                 std::vector<float> next_layer(hidden_layers[j].size(), 0.0);
                 for (int k = 0; k < hidden_layers[j].size(); ++k) {
-                    float sum = biases_hidden[j][k];
-                    for (int l = 0; l < layer_outputs[j].size(); ++l) {
-                          if (l >= weights_hidden[j].size() || k >= weights_hidden[j][l].size()) {
-                            std::cerr << "Index out of bounds: weights_hidden[" << j << "][" << l << "][" << k << "]" << std::endl;
-                            return;
+                    if (dropout_masks[j][k]) {
+                        float sum = biases_hidden[j][k];
+                        for (int l = 0; l < layer_outputs[j].size(); ++l) {
+                            if (l >= weights_hidden[j].size() || k >= weights_hidden[j][l].size()) {
+                                std::cerr << "Index out of bounds: weights_hidden[" << j << "][" << l << "][" << k << "]" << std::endl;
+                                return;
+                            }
+                            sum += layer_outputs[j][l] * weights_hidden[j][l][k];
                         }
-                        sum += layer_outputs[j][l] * weights_hidden[j][l][k];
+                        next_layer[k] = relu(sum);
                     }
-                    next_layer[k] = relu(sum);
                 }
                 layer_outputs[j + 1] = next_layer;
             }

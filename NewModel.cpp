@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <vector>
+#include <cstddef>
 #include "MLP.h"
 #include "ActivationFunctions.h"
 #include "ImageProcessor.h"
@@ -82,7 +83,7 @@ int main() {
     cout << "Number of training samples: " << training_data.size() << endl;
 
     // Khởi tạo mô hình MLP với số lượng đầu vào tương ứng với kích thước ảnh, 5 lớp ẩn (mỗi lớp 30 nơ-ron), tốc độ học 0.001
-    vector<int> layer_sizes = {static_cast<int>(training_data[0].size()), 30, 30, 30, 30, 30, 3}; // Increase neurons in hidden layers
+    vector<int> layer_sizes = {static_cast<int>(training_data[0].size()), 50, 50, 50, 50, 3}; // Increase neurons in hidden layers
     
     // Kiểm tra kích thước đầu vào
     if (training_data[0].size() != layer_sizes[0]) {
@@ -90,7 +91,7 @@ int main() {
         return 1;
     }
 
-    MLP mlp(layer_sizes, 0.001); // Reduce learning rate
+    MLP mlp(layer_sizes, 0.01); // Reduce learning rate
     cout << "MLP model initialized." << endl;
  
     // Split data into training and validation sets
@@ -102,7 +103,7 @@ int main() {
 
     // Huấn luyện mô hình trong 10000 epochs
     cout << "Training started." << endl;
-    mlp.train(training_data, labels, 50000, validation_data, validation_labels); // Increase number of epochs and pass validation data to train method
+    mlp.train(training_data, labels, 20000, validation_data, validation_labels); // Increase number of epochs and pass validation data to train method
     cout << "Training completed." << endl;
 
     // Load new images for prediction
