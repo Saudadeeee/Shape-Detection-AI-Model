@@ -13,7 +13,7 @@ def train(model, train_loader, epochs, learning_rate, device):
         model.train()
         for images, labels in train_loader:
             images, labels = images.to(device), labels.to(device)
-            images = images.squeeze(1)  # Remove extra dimension if present
+            images = images.squeeze(1) 
             optimizer.zero_grad()
             outputs = model(images)
             loss = criterion(outputs, labels)
@@ -29,7 +29,7 @@ def evaluate(model, test_loader, device):
     with torch.no_grad():
         for images, labels in test_loader:
             images, labels = images.to(device), labels.to(device)
-            images = images.squeeze(1)  # Remove extra dimension if present
+            images = images.squeeze(1)  
             outputs = model(images)
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)

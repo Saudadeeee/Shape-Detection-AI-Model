@@ -4,13 +4,18 @@
 #include <vector>
 #include <string>
 #include <fstream>
-#include <cassert>
 #include <iostream>
-#include <thread>
-#include <mutex>
+#include <algorithm>
+#include <random>
 #include "cnn_model.h"
 
-std::vector<Image> load_data(const std::string& file_path_X, const std::string& file_path_y, size_t batch_size = 100) {
+// Remove the redundant Image struct definition
+// struct Image {
+//     float data[IMAGE_SIZE][IMAGE_SIZE];
+//     int label;
+// };
+
+std::vector<Image> load_data(const std::string& file_path_X, const std::string& file_path_y) {
     std::vector<Image> dataset;
     std::ifstream file_X(file_path_X, std::ios::binary);
     std::ifstream file_y(file_path_y, std::ios::binary);
@@ -20,34 +25,47 @@ std::vector<Image> load_data(const std::string& file_path_X, const std::string& 
         return dataset;
     }
 
-    std::vector<std::thread> threads;
-    std::mutex dataset_mutex;
     while (file_X && file_y) {
-        std::vector<Image> batch;
-        for (size_t i = 0; i < batch_size && file_X && file_y; ++i) {
-            Image img;
-            file_X.read(reinterpret_cast<char*>(img.data), IMAGE_SIZE * IMAGE_SIZE * sizeof(float));
-            file_y.read(reinterpret_cast<char*>(&img.label), sizeof(img.label));
-            if (file_X && file_y) {
-                batch.push_back(img);
-            }
-        }
-        if (!batch.empty()) {
-            threads.emplace_back([&dataset, &dataset_mutex, batch]() {
-                std::lock_guard<std::mutex> lock(dataset_mutex);
-                dataset.insert(dataset.end(), batch.begin(), batch.end());
-            });
+        Image img;
+        file_X.read(reinterpret_cast<char*>(img.data), IMAGE_SIZE * IMAGE_SIZE * sizeof(float));
+        file_y.read(reinterpret_cast<char*>(&img.label), sizeof(img.label));
+        if (file_X && file_y) {
+            dataset.push_back(img);
         }
     }
 
-    for (auto& thread : threads) {
-        if (thread.joinable()) {
-            thread.join();
-        }
-    }
-
-    std::cout << "Loaded " << dataset.size() << " images from " << file_path_X << " and " << file_path_y << std::endl;
     return dataset;
+}
+
+void apply_horizontal_flip(float data[IMAGE_SIZE][IMAGE_SIZE]) {
+    for (int i = 0; i < IMAGE_SIZE; ++i) {
+        std::reverse(data[i], data[i] + IMAGE_SIZE);
+    }
+}
+
+void apply_random_rotation(float data[IMAGE_SIZE][IMAGE_SIZE]) {
+    float temp[IMAGE_SIZE][IMAGE_SIZE];
+    for (int i = 0; i < IMAGE_SIZE; ++i) {
+        for (int j = 0; j < IMAGE_SIZE; ++j) {
+            temp[j][IMAGE_SIZE - 1 - i] = data[i][j];
+        }
+    }
+    std::copy(&temp[0][0], &temp[0][0] + IMAGE_SIZE * IMAGE_SIZE, &data[0][0]);
+}
+
+void augment_data(std::vector<Image>& batch) {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<> dis(0.0, 1.0);
+
+    for (auto& img : batch) {
+        if (dis(gen) > 0.5) {
+            apply_horizontal_flip(img.data);
+        }
+        if (dis(gen) > 0.5) {
+            apply_random_rotation(img.data);
+        }
+    }
 }
 
 #endif

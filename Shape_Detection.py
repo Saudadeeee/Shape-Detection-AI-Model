@@ -25,27 +25,13 @@ def preprocess_data(X, y):
     return train_test_split(X, y, test_size=0.2, random_state=42)
 
 def save_to_binary(X, y, output_dir):
-    """
-    Save preprocessed data as binary files for C++ processing.
-    Args:
-        X (np.array): Features array.
-        y (np.array): Labels array.
-        output_dir (str): Directory to save binary files.
-    """
     os.makedirs(output_dir, exist_ok=True)
-    
-    # Flatten the data and write to binary files
+
     X.tofile(os.path.join(output_dir, "X.bin"))
     y.tofile(os.path.join(output_dir, "y.bin"))
 
 def save_test_data(X_test, y_test, output_dir):
-    """
-    Save test data as binary files for C++ evaluation.
-    Args:
-        X_test (np.array): Test features array.
-        y_test (np.array): Test labels array.
-        output_dir (str): Directory to save binary files.
-    """
+
     os.makedirs(output_dir, exist_ok=True)
     X_test.tofile(os.path.join(output_dir, "X.bin"))
     y_test.tofile(os.path.join(output_dir, "Y.bin"))
