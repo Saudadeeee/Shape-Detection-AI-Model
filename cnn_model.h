@@ -118,6 +118,7 @@ public:
         std::cout << "Backward pass started." << std::endl; // Add this line
         std::vector<float> output_grad(NUM_CLASSES, 0.0f);
         output_grad[label] = 1.0f - output[label];
+        std::cout << "output_grad[" << label << "] = " << output_grad[label] << std::endl; // Add this line
 
         std::vector<float> fc3_grad(128, 0.0f);
         for (int i = 0; i < NUM_CLASSES; ++i) {
@@ -161,6 +162,11 @@ public:
                         for (int kj = 0; kj < 3; ++kj) {
                             conv2_grad[f * 16 * 16 + i * 16 + j] += conv3_grad[f * 16 * 16 + i * 16 + j];
                             conv2_weights[f][ki * 3 + kj] += learning_rate * conv2_grad[f * 16 * 16 + i * 16 + j];
+                            std::cout << "output_grad[" << label << "] = " << output_grad[label] << std::endl; // Add this line
+                            std::cout << "fc3_grad[" << j << "] = " << fc3_grad[j] << std::endl; // Add this line
+                            std::cout << "fc2_grad[" << f << "][" << i << "][" << j << "] = " << fc2_grad[f * 8 * 8 + i * 8 + j] << std::endl; // Add this line
+                            std::cout << "conv3_grad[" << f << "][" << i << "][" << j << "] = " << conv3_grad[f * 8 * 8 + i * 8 + j] << std::endl; // Add this line
+                            std::cout << "conv2_grad[" << f << "][" << i << "][" << j << "] updated: " << conv2_grad[f * 16 * 16 + i * 16 + j] << std::endl; // Add this line
                         }
                     }
                 }
