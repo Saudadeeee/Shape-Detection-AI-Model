@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <map>
 #include <cmath>
+#include <algorithm>
 
 namespace fs = std::filesystem;
 
@@ -16,6 +17,16 @@ void resize_image(const std::vector<unsigned char>& input, int input_width, int 
             int src_y = y * input_height / output_height;
             output[y * output_width + x] = input[src_y * input_width + src_x];
         }
+    }
+}
+
+void convert_to_grayscale(const std::vector<unsigned char>& input, std::vector<unsigned char>& output, int width, int height) {
+    output.resize(width * height);
+    for (int i = 0; i < width * height; ++i) {
+        int r = input[i * 3];
+        int g = input[i * 3 + 1];
+        int b = input[i * 3 + 2];
+        output[i] = static_cast<unsigned char>(0.299 * r + 0.587 * g + 0.114 * b);
     }
 }
 
@@ -32,8 +43,11 @@ void load_image(const std::string& file_path, std::vector<double>& image) {
 
         int input_width = 200;  // Original image width
         int input_height = 200; // Original image height
+        std::vector<unsigned char> grayscale_buffer;
+        convert_to_grayscale(buffer, grayscale_buffer, input_width, input_height);
+
         std::vector<unsigned char> resized_buffer;
-        resize_image(buffer, input_width, input_height, resized_buffer, 64, 64);
+        resize_image(grayscale_buffer, input_width, input_height, resized_buffer, 64, 64);
 
         for (size_t i = 0; i < resized_buffer.size(); ++i) {
             image.push_back(static_cast<double>(resized_buffer[i]) / 255.0);

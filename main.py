@@ -3,18 +3,20 @@ import torch.optim as optim
 import torch.nn as nn
 from cnn_model import CNN, save_weights, load_weights
 from data_loader import load_data
+from torch.optim.lr_scheduler import StepLR
 
 def train(model, train_loader, epochs, learning_rate, device):
     model.to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    scheduler = StepLR(optimizer, step_size=10, gamma=0.1)  # Reduce learning rate every 10 epochs
 
     for epoch in range(epochs):
         model.train()
         for images, labels in train_loader:
             try:
                 images, labels = images.to(device), labels.to(device)
-                images = images.squeeze(1) 
+                images = images.squeeze(1)
                 optimizer.zero_grad()
                 outputs = model(images)
                 loss = criterion(outputs, labels)
@@ -22,6 +24,7 @@ def train(model, train_loader, epochs, learning_rate, device):
                 optimizer.step()
             except IndexError as e:
                 print(f"Skipping batch due to IndexError: {e}")
+        scheduler.step()  # Update learning rate
         print(f"Epoch {epoch + 1}/{epochs} completed.")
 
 def evaluate(model, test_loader, device):
@@ -46,14 +49,14 @@ def main():
     test_X_path = "processed_data/test/X.bin"
     test_y_path = "processed_data/test/Y.bin"
 
-    batch_size = 500
+    batch_size = 1000  # Increased batch size for faster training
     train_loader = load_data(train_X_path, train_y_path, batch_size)
     test_loader = load_data(test_X_path, test_y_path, batch_size)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = CNN()
 
-    train(model, train_loader, epochs=50, learning_rate=0.0001, device=device)
+    train(model, train_loader, epochs=30, learning_rate=0.0001, device=device)  # Reduced number of epochs
     save_weights(model, "cnn_weights.bin")
 
     print("Model training completed.")

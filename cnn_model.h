@@ -7,6 +7,8 @@
 #include <random>
 #include <fstream> 
 #include <string>
+#include <sstream> // Add this line
+#include <iostream> // Add this line
 #include "activation_functions.h"
 
 const int IMAGE_SIZE = 64;
@@ -36,12 +38,19 @@ public:
                             sum += input[i + ki][j + kj] * conv1_weights[f][ki * 3 + kj];
                         }
                     }
-                    conv_output1[f * 32 * 32 + i * 32 + j] = sum;
+                    conv_output1[f * 32 * 32 + i * 32 + j] = sum + conv1_bias[f]; // Add bias
                 }
             }
         }
         conv_output1 = relu(conv_output1);
         conv_output1 = max_pool2d(conv_output1, 32, 2);
+
+        // Debug: Print conv_output1 values
+        std::cout << "conv_output1 values: ";
+        for (const auto& value : conv_output1) {
+            std::cout << value << " ";
+        }
+        std::cout << std::endl;
 
         // Convolutional layer 2
         std::vector<float> conv_output2(64 * 16 * 16, 0.0f);
@@ -61,6 +70,13 @@ public:
         conv_output2 = relu(conv_output2);
         conv_output2 = max_pool2d(conv_output2, 16, 2);
 
+        // Debug: Print conv_output2 values
+        std::cout << "conv_output2 values: ";
+        for (const auto& value : conv_output2) {
+            std::cout << value << " ";
+        }
+        std::cout << std::endl;
+
         // Convolutional layer 3
         std::vector<float> conv_output3(128 * 8 * 8, 0.0f);
         for (int f = 0; f < 128; ++f) {
@@ -79,6 +95,13 @@ public:
         conv_output3 = relu(conv_output3);
         conv_output3 = max_pool2d(conv_output3, 8, 2);
 
+        // Debug: Print conv_output3 values
+        std::cout << "conv_output3 values: ";
+        for (const auto& value : conv_output3) {
+            std::cout << value << " ";
+        }
+        std::cout << std::endl;
+
         // Fully connected layer 1
         std::vector<float> fc1_output(256, 0.0f);
         for (int i = 0; i < 256; ++i) {
@@ -90,6 +113,13 @@ public:
         }
         fc1_output = relu(fc1_output);
 
+        // Debug: Print fc1_output values
+        std::cout << "fc1_output values: ";
+        for (const auto& value : fc1_output) {
+            std::cout << value << " ";
+        }
+        std::cout << std::endl;
+
         // Fully connected layer 2
         std::vector<float> fc2_output(128, 0.0f);
         for (int i = 0; i < 128; ++i) {
@@ -100,6 +130,13 @@ public:
             fc2_output[i] = sum;
         }
         fc2_output = relu(fc2_output);
+
+        // Debug: Print fc2_output values
+        std::cout << "fc2_output values: ";
+        for (const auto& value : fc2_output) {
+            std::cout << value << " ";
+        }
+        std::cout << std::endl;
 
         // Fully connected layer 3
         std::vector<float> output(NUM_CLASSES, 0.0f);
@@ -203,12 +240,13 @@ public:
     }
 
     void save_weights(const std::string& file_path) {
-        std::ofstream file(file_path, std::ios::binary);
+        std::ofstream file(file_path);
         if (!file.is_open()) {
             std::cerr << "Error: Could not open file to save weights." << std::endl;
             return;
         }
         save_vector(file, conv1_weights);
+        save_vector(file, conv1_bias); // Add this line
         save_vector(file, conv2_weights);
         save_vector(file, conv3_weights);
         save_vector(file, fc1_weights);
@@ -218,12 +256,13 @@ public:
     }
 
     void load_weights(const std::string& file_path) {
-        std::ifstream file(file_path, std::ios::binary);
+        std::ifstream file(file_path);
         if (!file.is_open()) {
             std::cerr << "Error: Could not open file to load weights." << std::endl;
             return;
         }
         load_vector(file, conv1_weights);
+        load_vector(file, conv1_bias); // Add this line
         load_vector(file, conv2_weights);
         load_vector(file, conv3_weights);
         load_vector(file, fc1_weights);
@@ -232,8 +271,31 @@ public:
         file.close();
     }
 
+    void load_weights_from_csv(const std::string& file_path) {
+        std::ifstream file(file_path);
+        if (!file.is_open()) {
+            std::cerr << "Error: Could not open file to load weights." << std::endl;
+            return;
+        }
+        std::string line;
+        while (std::getline(file, line)) {
+            std::istringstream ss(line);
+            std::string key, value;
+            if (std::getline(ss, key, ',') && std::getline(ss, value)) {
+                if (key == "conv1.weight") {
+                    conv1_weights = parse_weights(value, 32, 9);
+                } else if (key == "conv1.bias") {
+                    conv1_bias = parse_weights(value, 32); // Fix the variable name
+                }
+                // Add parsing for other layers as needed
+            }
+        }
+        file.close();
+    }
+
 private:
     std::vector<std::vector<float>> conv1_weights;
+    std::vector<float> conv1_bias; // Add this line
     std::vector<std::vector<float>> conv2_weights;
     std::vector<std::vector<float>> conv3_weights;
     std::vector<float> fc1_weights;
@@ -242,26 +304,50 @@ private:
 
     void initialize_weights() {
         conv1_weights = std::vector<std::vector<float>>(32, std::vector<float>(9, 0.01f));
+        conv1_bias = std::vector<float>(32, 0.01f); // Add this line
         conv2_weights = std::vector<std::vector<float>>(64, std::vector<float>(32 * 3 * 3, 0.01f));
         conv3_weights = std::vector<std::vector<float>>(128, std::vector<float>(64 * 3 * 3, 0.01f));
         fc1_weights = std::vector<float>(128 * 8 * 8, 0.01f);
         fc2_weights = std::vector<float>(256, 0.01f);
         fc3_weights = std::vector<float>(128, 0.01f);
+
+        // Debug: Print initial conv2_weights and conv3_weights values
+        std::cout << "Initial conv2_weights values: ";
+        for (const auto& filter : conv2_weights) {
+            for (const auto& weight : filter) {
+                std::cout << weight << " ";
+            }
+        }
+        std::cout << std::endl;
+
+        std::cout << "Initial conv3_weights values: ";
+        for (const auto& filter : conv3_weights) {
+            for (const auto& weight : filter) {
+                std::cout << weight << " ";
+            }
+        }
+        std::cout << std::endl;
     }
 
     template <typename T>
     void save_vector(std::ofstream& file, const std::vector<T>& vec) {
-        size_t size = vec.size();
-        file.write(reinterpret_cast<const char*>(&size), sizeof(size));
-        file.write(reinterpret_cast<const char*>(vec.data()), size * sizeof(T));
+        for (const auto& v : vec) {
+            file << v << " ";
+        }
+        file << std::endl;
     }
 
     template <typename T>
     void load_vector(std::ifstream& file, std::vector<T>& vec) {
-        size_t size;
-        file.read(reinterpret_cast<char*>(&size), sizeof(size));
-        vec.resize(size);
-        file.read(reinterpret_cast<char*>(vec.data()), size * sizeof(T));
+        std::string line;
+        if (std::getline(file, line)) {
+            std::istringstream ss(line);
+            T value;
+            vec.clear();
+            while (ss >> value) {
+                vec.push_back(value);
+            }
+        }
     }
 
     std::vector<float> relu(const std::vector<float>& input) {
@@ -287,6 +373,35 @@ private:
             }
         }
         return output;
+    }
+
+    std::vector<std::vector<float>> parse_weights(const std::string& value, int rows, int cols) {
+        std::vector<std::vector<float>> weights(rows, std::vector<float>(cols));
+        std::istringstream ss(value);
+        std::string row;
+        for (int i = 0; i < rows; ++i) {
+            std::getline(ss, row, ']');
+            if (row.size() > 2) { // Add this check
+                std::istringstream row_ss(row.substr(2)); // Skip the initial "[["
+                for (int j = 0; j < cols; ++j) {
+                    row_ss >> weights[i][j];
+                    if (row_ss.peek() == ',') row_ss.ignore();
+                }
+            }
+        }
+        return weights;
+    }
+
+    std::vector<float> parse_weights(const std::string& value, int size) {
+        std::vector<float> weights(size);
+        if (value.size() > 2) { // Add this check
+            std::istringstream ss(value.substr(1, value.size() - 2)); // Remove the surrounding brackets
+            for (int i = 0; i < size; ++i) {
+                ss >> weights[i];
+                if (ss.peek() == ',') ss.ignore();
+            }
+        }
+        return weights;
     }
 };
 

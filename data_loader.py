@@ -17,7 +17,7 @@ class ImageDataset(Dataset):
         label = self.labels[idx]
         if self.transform:
             image = self.transform(image)
-        image = torch.tensor(image, dtype=torch.float32).unsqueeze(0)  
+        image = torch.tensor(image, dtype=torch.float32).unsqueeze(0).clone().detach()  # Fix warning
         return image, torch.tensor(label, dtype=torch.long)
 
 def load_data(file_path_X, file_path_y, batch_size=100):
