@@ -72,14 +72,6 @@ int main() {
     std::cout << "Evaluating model..." << std::endl;
     evaluate(model, test_data);
 
-    // std::cout << "Loading captured image..." << std::endl;
-    // std::string captured_image_path = "path_to_captured_image.bin"; // Update with the actual path
-    // Image captured_img = load_captured_image(captured_image_path);
-    // std::cout << "Predicting label for captured image..." << std::endl;
-    // auto output = model.forward(captured_img.data);
-    // int captured_predicted_label = std::distance(output.begin(), std::max_element(output.begin(), output.end()));
-    // std::cout << "Predicted label for the captured image: " << captured_predicted_label << std::endl;
-
     std::cout << "Main function completed." << std::endl;
     return 0;
 }

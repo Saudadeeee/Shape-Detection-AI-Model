@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <algorithm>
-#include <cmath>
 
 std::vector<float> relu(const std::vector<float>& input) {
     std::vector<float> output(input.size());

@@ -1,10 +1,14 @@
 #include "esp_camera.h"
+#include "cnn_model.cpp"
 #include "FS.h"
 #include "SD_MMC.h"
 #include <Preferences.h>
 
 Preferences preferences;
 int photoCount = 0;
+
+// Initialize CNN model
+CNN model;
 
 void initCamera() {
     camera_config_t config;
@@ -27,10 +31,17 @@ void initCamera() {
     config.pin_pwdn = 32;
     config.pin_reset = -1;
     config.xclk_freq_hz = 20000000;
-    config.pixel_format = PIXFORMAT_JPEG;
-    config.frame_size = FRAMESIZE_UXGA;
-    config.jpeg_quality = 10;
-    config.fb_count = 2;
+    config.pixel_format = PIXFORMAT_GRAYSCALE; 
+
+    if(psramFound()){
+        config.frame_size = FRAMESIZE_64X64;
+        config.jpeg_quality = 10;
+        config.fb_count = 2;
+    } else {
+        config.frame_size = FRAMESIZE_64X64;
+        config.jpeg_quality = 12;
+        config.fb_count = 1;
+    }
 
     if (esp_camera_init(&config) != ESP_OK) {
         Serial.println("Camera init failed");
@@ -38,7 +49,6 @@ void initCamera() {
     }
     Serial.println("Camera init success");
 
-    // Cài đặt chế độ đen-trắng
     sensor_t *s = esp_camera_sensor_get();
     s->set_saturation(s, -2);
     s->set_special_effect(s, 2);
@@ -51,7 +61,7 @@ void takePhoto() {
         return;
     }
 
-    // Tạo tên file ảnh
+    // Lưu ảnh vào thẻ nhớ
     String path = "/image_" + String(photoCount) + ".jpg";
     File file = SD_MMC.open(path.c_str(), FILE_WRITE);
     if (file) {
@@ -72,6 +82,7 @@ void takePhoto() {
 
 void setup() {
     Serial.begin(115200);
+
     initCamera();
 
     if (!SD_MMC.begin()) {
@@ -84,11 +95,35 @@ void setup() {
     preferences.begin("photo", false);
     photoCount = preferences.getInt("photoCount", 0);
 
-    // Chụp ảnh đầu tiên khi reset
+    model.load_weights("/sdcard/cnn_weights.bin");
     takePhoto();
 }
 
 void loop() {
-    // Không cần làm gì trong loop
+    camera_fb_t * fb = esp_camera_fb_get();
+    if (!fb) {
+        Serial.println("Camera capture failed");
+        return;
+    }
+
+    float image[IMAGE_SIZE][IMAGE_SIZE];
+    for (int i = 0; i < IMAGE_SIZE; ++i) {
+        for (int j = 0; j < IMAGE_SIZE; ++j) {
+            image[i][j] = fb->buf[i * IMAGE_SIZE + j] / 255.0f;
+        }
+    }
+
+    std::vector<float> output = model.forward(image);
+
+    // Print the output
+    for (float value : output) {
+        Serial.print(value);
+        Serial.print(" ");
+    }
+    Serial.println();
+
+    esp_camera_fb_return(fb);
+
+    delay(10000); 
 }
 

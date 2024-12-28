@@ -26,12 +26,10 @@ def preprocess_data(X, y):
 
 def save_to_binary(X, y, output_dir):
     os.makedirs(output_dir, exist_ok=True)
-
     X.tofile(os.path.join(output_dir, "X.bin"))
     y.tofile(os.path.join(output_dir, "y.bin"))
 
 def save_test_data(X_test, y_test, output_dir):
-
     os.makedirs(output_dir, exist_ok=True)
     X_test.tofile(os.path.join(output_dir, "X.bin"))
     y_test.tofile(os.path.join(output_dir, "Y.bin"))
@@ -44,6 +42,10 @@ if __name__ == "__main__":
     print(f"Loaded {len(X)} samples.")
     print("Preprocessing data...")
     X_train, X_test, y_train, y_test = preprocess_data(X, y)
+
+    # Print data types and shapes for verification
+    print(f"X_train dtype: {X_train.dtype}, shape: {X_train.shape}")
+    print(f"X_test dtype: {X_test.dtype}, shape: {X_test.shape}")
 
     print("Saving processed data...")
     save_to_binary(X_train, y_train, os.path.join(OUTPUT_DIR, "train"))

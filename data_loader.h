@@ -9,12 +9,6 @@
 #include <random>
 #include "cnn_model.h"
 
-// Remove the redundant Image struct definition
-// struct Image {
-//     float data[IMAGE_SIZE][IMAGE_SIZE];
-//     int label;
-// };
-
 std::vector<Image> load_data(const std::string& file_path_X, const std::string& file_path_y) {
     std::vector<Image> dataset;
     std::ifstream file_X(file_path_X, std::ios::binary);

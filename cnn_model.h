@@ -5,7 +5,8 @@
 #include <cmath>
 #include <algorithm>
 #include <random>
-#include <fstream> // Add this line
+#include <fstream> 
+#include <string>
 #include "activation_functions.h"
 
 const int IMAGE_SIZE = 64;
@@ -261,6 +262,31 @@ private:
         file.read(reinterpret_cast<char*>(&size), sizeof(size));
         vec.resize(size);
         file.read(reinterpret_cast<char*>(vec.data()), size * sizeof(T));
+    }
+
+    std::vector<float> relu(const std::vector<float>& input) {
+        std::vector<float> output(input.size());
+        std::transform(input.begin(), input.end(), output.begin(), [](float x) { return std::max(0.0f, x); });
+        return output;
+    }
+
+    std::vector<float> max_pool2d(const std::vector<float>& input, int input_size, int pool_size) {
+        int output_size = input_size / pool_size;
+        std::vector<float> output(output_size * output_size * (input.size() / (input_size * input_size)), 0.0f);
+        for (size_t c = 0; c < input.size() / (input_size * input_size); ++c) {
+            for (int i = 0; i < output_size; ++i) {
+                for (int j = 0; j < output_size; ++j) {
+                    float max_val = -std::numeric_limits<float>::infinity();
+                    for (int ki = 0; ki < pool_size; ++ki) {
+                        for (int kj = 0; kj < pool_size; ++kj) {
+                            max_val = std::max(max_val, input[c * input_size * input_size + (i * pool_size + ki) * input_size + (j * pool_size + kj)]);
+                        }
+                    }
+                    output[c * output_size * output_size + i * output_size + j] = max_val;
+                }
+            }
+        }
+        return output;
     }
 };
 

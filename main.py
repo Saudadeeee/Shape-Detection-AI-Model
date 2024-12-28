@@ -12,13 +12,16 @@ def train(model, train_loader, epochs, learning_rate, device):
     for epoch in range(epochs):
         model.train()
         for images, labels in train_loader:
-            images, labels = images.to(device), labels.to(device)
-            images = images.squeeze(1) 
-            optimizer.zero_grad()
-            outputs = model(images)
-            loss = criterion(outputs, labels)
-            loss.backward()
-            optimizer.step()
+            try:
+                images, labels = images.to(device), labels.to(device)
+                images = images.squeeze(1) 
+                optimizer.zero_grad()
+                outputs = model(images)
+                loss = criterion(outputs, labels)
+                loss.backward()
+                optimizer.step()
+            except IndexError as e:
+                print(f"Skipping batch due to IndexError: {e}")
         print(f"Epoch {epoch + 1}/{epochs} completed.")
 
 def evaluate(model, test_loader, device):
