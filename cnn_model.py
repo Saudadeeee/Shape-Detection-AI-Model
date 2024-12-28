@@ -5,20 +5,22 @@ import numpy as np
 import csv
 import sys
 
-csv.field_size_limit(2**31 - 1)  # Set CSV field size limit to a smaller value
+csv.field_size_limit(2**31 - 1)  
 
 class CNN(nn.Module):
     def __init__(self):
         super(CNN, self).__init__()
         self.conv1 = nn.Conv2d(1, 8, kernel_size=3, stride=1, padding=1)
+        self.bn1 = nn.BatchNorm2d(8)  # Add batch normalization
         self.conv2 = nn.Conv2d(8, 16, kernel_size=3, stride=1, padding=1)
+        self.bn2 = nn.BatchNorm2d(16)  # Add batch normalization
         self.fc1 = nn.Linear(16 * 16 * 16, 64)
         self.fc2 = nn.Linear(64, 4)
 
     def forward(self, x):
-        x = F.relu(self.conv1(x))
+        x = F.relu(self.bn1(self.conv1(x)))  # Apply batch normalization
         x = F.max_pool2d(x, 2)
-        x = F.relu(self.conv2(x))
+        x = F.relu(self.bn2(self.conv2(x)))  # Apply batch normalization
         x = F.max_pool2d(x, 2)
         x = x.view(x.size(0), -1)
         x = F.relu(self.fc1(x))
