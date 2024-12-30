@@ -3,27 +3,60 @@
 #include "data_loader.h"
 #include <vector>
 #include <fstream>
+#include <cmath>
+#include <algorithm>
 
-void train(CNN& model, const std::vector<Image>& train_data, int epochs, float learning_rate, size_t batch_size) {
+// ...existing code...
+
+void train(CNN& model, std::vector<Image>& train_data, int epochs, float learning_rate) {
+    // Adam optimizer parameters
+    float beta1 = 0.9f;
+    float beta2 = 0.999f;
+    float epsilon = 1e-8f;
+    std::vector<float> m1(model.get_fc2_weights().size(), 0.0f);
+    std::vector<float> v1(model.get_fc2_weights().size(), 0.0f);
+
     for (int epoch = 0; epoch < epochs; ++epoch) {
-        std::cout << "Epoch " << epoch + 1 << "/" << epochs << " started." << std::endl; // Add this line
-        for (size_t i = 0; i < train_data.size(); i += batch_size) {
-            size_t end = std::min(i + batch_size, train_data.size());
-            std::vector<Image> batch(train_data.begin() + i, train_data.begin() + end);
-            augment_data(batch); // Apply data augmentation
-            model.train_batch(batch, learning_rate);
-            std::cout << "Processed batch " << i / batch_size + 1 << "/" << (train_data.size() + batch_size - 1) / batch_size << std::endl; // Add this line
+        std::cout << "Epoch " << epoch + 1 << "/" << epochs << " started." << std::endl;
+        for (auto& img : train_data) {
+            auto output = model.forward(img.data);
+            std::vector<float> target(NUM_CLASSES, 0.0f);
+            target[img.label] = 1.0f;
+
+            // Compute loss (CrossEntropyLoss)
+            float loss = 0.0f;
+            for (int i = 0; i < NUM_CLASSES; ++i) {
+                if (output[i] > 0) {
+                    loss -= target[i] * std::log(output[i]);
+                }
+            }
+
+            // Print loss for debugging
+            std::cout << "Loss: " << loss << std::endl;
+
+            // Backpropagation (simplified)
+            std::vector<float> grad_output(NUM_CLASSES);
+            for (int i = 0; i < NUM_CLASSES; ++i) {
+                grad_output[i] = output[i] - target[i];
+            }
+
+            // Update weights (simplified)
+            auto fc2_weights = model.get_fc2_weights();
+            for (size_t i = 0; i < fc2_weights.size(); ++i) {
+                fc2_weights[i] -= learning_rate * grad_output[i % NUM_CLASSES];
+            }
+            model.set_fc2_weights(fc2_weights);
         }
         std::cout << "Epoch " << epoch + 1 << "/" << epochs << " completed." << std::endl;
     }
 }
 
-void evaluate(CNN& model, const std::vector<Image>& test_data) {
+void evaluate(CNN& model, std::vector<Image>& test_data) {
     int correct = 0;
-    for (const auto& img : test_data) {
+    for (auto& img : test_data) {
         auto output = model.forward(img.data);
-        int prediction = std::distance(output.begin(), std::max_element(output.begin(), output.end()));
-        if (prediction == img.label) {
+        int predicted_index = std::distance(output.begin(), std::max_element(output.begin(), output.end()));
+        if (predicted_index == img.label) {
             ++correct;
         }
     }
@@ -31,47 +64,25 @@ void evaluate(CNN& model, const std::vector<Image>& test_data) {
     std::cout << "Model accuracy: " << accuracy << "%" << std::endl;
 }
 
-Image load_captured_image(const std::string& file_path) {
-    std::ifstream file(file_path, std::ios::binary);
-    if (!file.is_open()) {
-        std::cerr << "Error: Could not open captured image file." << std::endl;
-        exit(1);
-    }
-
-    Image img;
-    file.read(reinterpret_cast<char*>(img.data), IMAGE_SIZE * IMAGE_SIZE * sizeof(float));
-    file.close();
-    return img;
-}
-
 int main() {
-    std::cout << "Starting main function..." << std::endl;
+    CNN model;  // Initialize model from scratch
 
     std::string train_X_path = "processed_data/train/X.bin";
     std::string train_y_path = "processed_data/train/y.bin";
     std::string test_X_path = "processed_data/test/X.bin";
     std::string test_y_path = "processed_data/test/Y.bin";
 
-    std::cout << "Loading training data..." << std::endl;
-    std::vector<Image> train_data = load_data(train_X_path, train_y_path);
-    std::cout << "Training data loaded." << std::endl;
+    int batch_size = 1000;
+    std::vector<Image> train_data = load_data(train_X_path, train_y_path, batch_size);
+    std::vector<Image> test_data = load_data(test_X_path, test_y_path, batch_size);
 
-    std::cout << "Loading test data..." << std::endl;
-    std::vector<Image> test_data = load_data(test_X_path, test_y_path);
-    std::cout << "Test data loaded." << std::endl;
-
-    CNN model;
-
-    std::cout << "Starting training..." << std::endl;
-    train(model, train_data, 50, 0.0001f, 32);
-    model.save_weights("cnn_weights.bin");
+    std::cout << "Training model..." << std::endl;
+    train(model, train_data, 30, 0.0001);
+    model.save_weights_binary("cnn_weights.bin");
     std::cout << "Model training completed." << std::endl;
 
-    std::cout << "Loading model weights..." << std::endl;
-    model.load_weights("cnn_weights.bin");
     std::cout << "Evaluating model..." << std::endl;
     evaluate(model, test_data);
 
-    std::cout << "Main function completed." << std::endl;
     return 0;
 }

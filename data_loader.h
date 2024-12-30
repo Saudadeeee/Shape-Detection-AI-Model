@@ -9,7 +9,10 @@
 #include <random>
 #include "cnn_model.h"
 
-std::vector<Image> load_data(const std::string& file_path_X, const std::string& file_path_y) {
+// Declare augment_data function
+void augment_data(std::vector<Image>& batch);
+
+std::vector<Image> load_data(const std::string& file_path_X, const std::string& file_path_y, int batch_size) {
     std::vector<Image> dataset;
     std::ifstream file_X(file_path_X, std::ios::binary);
     std::ifstream file_y(file_path_y, std::ios::binary);
@@ -26,6 +29,17 @@ std::vector<Image> load_data(const std::string& file_path_X, const std::string& 
         if (file_X && file_y) {
             dataset.push_back(img);
         }
+    }
+
+    std::cout << "Loaded " << dataset.size() << " images." << std::endl; // Debug print
+
+    std::vector<Image> batch;
+    for (size_t i = 0; i < dataset.size(); i += batch_size) {
+        batch.clear();
+        for (size_t j = i; j < i + batch_size && j < dataset.size(); ++j) {
+            batch.push_back(dataset[j]);
+        }
+        augment_data(batch);
     }
 
     return dataset;

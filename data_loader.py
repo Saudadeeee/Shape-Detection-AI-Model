@@ -29,4 +29,6 @@ def load_data(file_path_X, file_path_y, batch_size=100):
     ])
     dataset = ImageDataset(file_path_X, file_path_y, transform=transform)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+    print(f"Loaded data from {file_path_X} and {file_path_y}")
+    print(f"Data shape: {dataset.data.shape}, Labels shape: {dataset.labels.shape}")
     return dataloader
