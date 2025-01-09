@@ -90,7 +90,7 @@ def evaluate(model, test_loader, device):
     precision = 100 * precision_score(all_labels, all_predictions, average='weighted')
     recall = 100 * recall_score(all_labels, all_predictions, average='weighted')
     f1 = 100 * f1_score(all_labels, all_predictions, average='weighted')
-    avg_loss = total_loss / len(test_loader)
+    avg_loss = 100* total_loss / len(test_loader)
     print(f"Model accuracy: {accuracy}%")
     print(f"Precision: {precision}%")
     print(f"Recall: {recall}%")
