@@ -11,6 +11,15 @@ def save_image_to_binary(image_path, output_path):
     image = image.reshape(1, 64, 64, 1)
     image.tofile(output_path)
 
+def prepare_image(image_path):
+    image = Image.open(image_path)
+    transform = transforms.Compose([
+        transforms.Grayscale(),  # Chuyển đổi ảnh về grayscale
+        transforms.Resize((64, 64)),  # Resize ảnh về kích thước 64x64
+        transforms.ToTensor()
+    ])
+    image = transform(image)
+    return image
 
 if __name__ == "__main__":
     TEST_IMAGE_PATH = "d:/Code/SourceCode/CNN_ModelAI/test.png"
