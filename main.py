@@ -170,23 +170,23 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = CNN()
 
-    # Commented out training section
-    """
-    print("Training model...")
-    train(model, train_loader, test_loader, epochs=30, learning_rate=0.0001, device=device)
-    print("Model training completed.")
+    # # Commented out training section
+
+    # print("Training model...")
+    # train(model, train_loader, test_loader, epochs=30, learning_rate=0.0001, device=device)
+    # print("Model training completed.")
     
-    # Export weights after training
-    export_hardcoded_weights(model)
-    print("Copy the above lines into cnn_model.py inside __init__() with torch.no_grad()")
+    # # Export weights after training
+    # export_hardcoded_weights(model)
+    # print("Copy the above lines into cnn_model.py inside __init__() with torch.no_grad()")
 
-    # Export weights to separate CSV files after training
-    export_weights_to_csv(model, 'model_weights')
-    print("Model weights exported to separate CSV files in the 'model_weights' directory")
+    # # Export weights to separate CSV files after training
+    # export_weights_to_csv(model, 'model_weights')
+    # print("Model weights exported to separate CSV files in the 'model_weights' directory")
 
-    print("Evaluating model...")
-    evaluate(model, test_loader, device)
-    """
+    # print("Evaluating model...")
+    # evaluate(model, test_loader, device)
+
     binary_image_path = 'd:/Code/SourceCode/CNN_ModelAI/test.bin'
     predicted_class = predict_image_from_binary(model, binary_image_path, device)
     label_map = {0: "circle", 1: "square", 2: "star", 3: "triangle"}
