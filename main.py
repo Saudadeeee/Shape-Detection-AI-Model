@@ -8,6 +8,7 @@ import numpy as np
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
+import csv
 
 def train(model, train_loader, val_loader, epochs, learning_rate, device):
     model.to(device)
@@ -141,8 +142,20 @@ def export_hardcoded_weights(model):
     sd = model.state_dict()
     for k, v in sd.items():
         if "weight" in k or "bias" in k:
-            arr = v.flatten().tolist()
-            print(f"self.{k}.data = torch.tensor({arr}, dtype=torch.float32).view(*self.{k}.data.shape)")
+            arr = v.cpu().numpy().flatten()
+            arr_str = np.array2string(arr, separator=',', formatter={'float_kind': lambda x: repr(x)}, max_line_width=np.inf)
+            print(f"self.{k}.data = torch.tensor({arr_str}, dtype=torch.float32).view(*self.{k}.data.shape)")
+
+def export_weights_to_csv(model, directory):
+    import os
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    for name, param in model.named_parameters():
+        file_path = os.path.join(directory, f"{name.replace('.', '_')}.csv")
+        with open(file_path, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(param.detach().cpu().numpy().flatten().tolist())
+        print(f"Exported {name} to {file_path}")
 
 def main():
     train_X_path = "processed_data/train/X.bin"
@@ -157,17 +170,23 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = CNN()
 
+    # Commented out training section
+    """
     print("Training model...")
     train(model, train_loader, test_loader, epochs=30, learning_rate=0.0001, device=device)
     print("Model training completed.")
-
+    
     # Export weights after training
     export_hardcoded_weights(model)
     print("Copy the above lines into cnn_model.py inside __init__() with torch.no_grad()")
 
+    # Export weights to separate CSV files after training
+    export_weights_to_csv(model, 'model_weights')
+    print("Model weights exported to separate CSV files in the 'model_weights' directory")
+
     print("Evaluating model...")
     evaluate(model, test_loader, device)
-
+    """
     binary_image_path = 'd:/Code/SourceCode/CNN_ModelAI/test.bin'
     predicted_class = predict_image_from_binary(model, binary_image_path, device)
     label_map = {0: "circle", 1: "square", 2: "star", 3: "triangle"}
