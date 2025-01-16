@@ -1,18 +1,18 @@
 import torch
 import torch.optim as optim
 import torch.nn as nn
-from cnn_model import CNN
 from data_loader import load_data
 from torch.optim.lr_scheduler import StepLR
 import numpy as np
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix
 import matplotlib.pyplot as plt
 import seaborn as sns
+from cnn_model import CNN
 import csv
 
 def train(model, train_loader, val_loader, epochs, learning_rate, device):
-    model.to(device)
     criterion = nn.CrossEntropyLoss()
+    model.to(device)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
     train_losses = []
@@ -91,7 +91,7 @@ def evaluate(model, test_loader, device):
     precision = 100 * precision_score(all_labels, all_predictions, average='weighted')
     recall = 100 * recall_score(all_labels, all_predictions, average='weighted')
     f1 = 100 * f1_score(all_labels, all_predictions, average='weighted')
-    avg_loss = 100* total_loss / len(test_loader)
+    avg_loss = 10 * total_loss / len(test_loader)
     print(f"Model accuracy: {accuracy}%")
     print(f"Precision: {precision}%")
     print(f"Recall: {recall}%")
@@ -168,12 +168,12 @@ def main():
     test_loader = load_data(test_X_path, test_y_path, batch_size)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = CNN()
+    model = CNN() 
 
     # # Commented out training section
 
     # print("Training model...")
-    # train(model, train_loader, test_loader, epochs=30, learning_rate=0.0001, device=device)
+    # train(model, train_loader, test_loader, epochs=10, learning_rate=0.001, device=device)
     # print("Model training completed.")
     
     # # Export weights after training
