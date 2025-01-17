@@ -9,12 +9,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from cnn_model import CNN
 import csv
+import torch.nn.functional as F 
 
 def train(model, train_loader, val_loader, epochs, learning_rate, device):
     criterion = nn.CrossEntropyLoss()
     model.to(device)
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-6) 
+    scheduler = StepLR(optimizer, step_size=5, gamma=0.5)
     train_losses = []
     val_losses = []
 
@@ -38,12 +39,10 @@ def train(model, train_loader, val_loader, epochs, learning_rate, device):
         train_losses.append(epoch_loss)
         print(f"Epoch {epoch + 1}/{epochs} completed. Training Loss: {epoch_loss}")
 
-        # Evaluate on validation set
         val_loss = evaluate_loss(model, val_loader, device, criterion)
         val_losses.append(val_loss)
         print(f"Epoch {epoch + 1}/{epochs} completed. Validation Loss: {val_loss}")
 
-    # Plot training and validation loss
     plt.figure()
     plt.plot(range(1, epochs + 1), train_losses, label='Training Loss')
     plt.plot(range(1, epochs + 1), val_losses, label='Validation Loss')
@@ -98,14 +97,12 @@ def evaluate(model, test_loader, device):
     print(f"F1 Score: {f1}%")
     print(f"Average Loss: {avg_loss}")
 
-    # Plot evaluation metrics
     metrics = {'Accuracy': accuracy, 'Precision': precision, 'Recall': recall, 'F1 Score': f1, 'Loss': avg_loss}
     plt.figure()
     plt.bar(metrics.keys(), metrics.values())
     plt.title('Evaluation Metrics')
     plt.show()
 
-    # Compute and display confusion matrix
     cm = confusion_matrix(all_labels, all_predictions)
     plt.figure(figsize=(10, 7))
     sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
@@ -113,16 +110,6 @@ def evaluate(model, test_loader, device):
     plt.ylabel('True')
     plt.title('Confusion Matrix')
     plt.show()
-
-def predict_image(model, image_path, device):
-    model.to(device)
-    model.eval()
-    image = prepare_image(image_path)
-    image = torch.tensor(image, dtype=torch.float32).unsqueeze(0).to(device)  
-    with torch.no_grad():
-        output = model(image)
-        _, predicted = torch.max(output.data, 1)
-    return predicted.item()
 
 def predict_image_from_binary(model, binary_path, device):
     model.to(device)
@@ -136,15 +123,6 @@ def predict_image_from_binary(model, binary_path, device):
         output = model(image)
         _, predicted = torch.max(output.data, 1)
     return predicted.item()
-
-def export_hardcoded_weights(model):
-    print("Copy the following lines into cnn_model.py inside __init__() with torch.no_grad():\n")
-    sd = model.state_dict()
-    for k, v in sd.items():
-        if "weight" in k or "bias" in k:
-            arr = v.cpu().numpy().flatten()
-            arr_str = np.array2string(arr, separator=',', formatter={'float_kind': lambda x: repr(x)}, max_line_width=np.inf)
-            print(f"self.{k}.data = torch.tensor({arr_str}, dtype=torch.float32).view(*self.{k}.data.shape)")
 
 def export_weights_to_csv(model, directory):
     import os
@@ -170,26 +148,24 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = CNN() 
 
-    # # Commented out training section
-
-    # print("Training model...")
-    # train(model, train_loader, test_loader, epochs=10, learning_rate=0.001, device=device)
-    # print("Model training completed.")
+    print("Training model...")
+    train(model, train_loader, test_loader, epochs=50, learning_rate=0.001, device=device)  # Increased epochs and adjusted learning rate
+    print("Model training completed.")
     
-    # # Export weights after training
-    # export_hardcoded_weights(model)
-    # print("Copy the above lines into cnn_model.py inside __init__() with torch.no_grad()")
+    # Export weights after training
+    export_hardcoded_weights(model)
+    print("Copy the above lines into cnn_model.py inside __init__() with torch.no_grad()")
 
-    # # Export weights to separate CSV files after training
-    # export_weights_to_csv(model, 'model_weights')
-    # print("Model weights exported to separate CSV files in the 'model_weights' directory")
+    # Export weights to separate CSV files after training
+    export_weights_to_csv(model, 'model_weights')
+    print("Model weights exported to separate CSV files in the 'model_weights' directory")
 
-    # print("Evaluating model...")
-    # evaluate(model, test_loader, device)
+    print("Evaluating model...")
+    evaluate(model, test_loader, device)
 
     binary_image_path = 'd:/Code/SourceCode/CNN_ModelAI/test.bin'
+    label_map = {0: "circle", 1: "halfmoon", 2: "heart", 3: "square", 4: "star", 5: "triangle"}
     predicted_class = predict_image_from_binary(model, binary_image_path, device)
-    label_map = {0: "circle", 1: "square", 2: "star", 3: "triangle"}
     print(f"The predicted class for {binary_image_path} is: {label_map[predicted_class]}")
 
 if __name__ == "__main__":

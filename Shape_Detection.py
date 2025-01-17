@@ -14,8 +14,8 @@ def save_image_to_binary(image_path, output_path):
 def prepare_image(image_path):
     image = Image.open(image_path)
     transform = transforms.Compose([
-        transforms.Grayscale(),  # Chuyển đổi ảnh về grayscale
-        transforms.Resize((64, 64)),  # Resize ảnh về kích thước 64x64
+        transforms.Grayscale(),  
+        transforms.Resize((64, 64)), 
         transforms.ToTensor()
     ])
     image = transform(image)
@@ -34,10 +34,11 @@ if __name__ == "__main__":
 # import cv2
 # import numpy as np
 # from sklearn.model_selection import train_test_split
+# from sklearn.model_selection import StratifiedShuffleSplit
 
 # def load_data(data_dir):
 #     X, y = [], []
-#     label_map = {"circle": 0, "square": 1, "star": 2, "triangle": 3}
+#     label_map = {"circle": 0, "halfmoon": 1, "heart": 2, "square": 3, "star": 4, "triangle": 5}
     
 #     for label, class_idx in label_map.items():
 #         class_dir = os.path.join(data_dir, label)
@@ -54,7 +55,13 @@ if __name__ == "__main__":
 #     X = X / 255.0 
 #     X = X.reshape(-1, 64, 64, 1)
 #     y = np.array(y)
-#     return train_test_split(X, y, test_size=0.2, random_state=42)
+    
+#     strat_split = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
+#     for train_index, test_index in strat_split.split(X, y):
+#         X_train, X_test = X[train_index], X[test_index]
+#         y_train, y_test = y[train_index], y[test_index]
+    
+#     return X_train, X_test, y_train, y_test
 
 # def save_to_binary(X, y, output_dir):
 #     os.makedirs(output_dir, exist_ok=True)

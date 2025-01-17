@@ -6,7 +6,6 @@ import os
 
 app = Flask(__name__)
 
-# Load the model
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = CNN()
 model.to(device)
@@ -21,24 +20,18 @@ def predict():
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
     
-    # Save the file temporarily
     temp_path = os.path.join('temp', file.filename)
     file.save(temp_path)
-    
-    # Prepare the image
     image = prepare_image(temp_path)
     image = image.unsqueeze(0).to(device)
     
-    # Predict
     with torch.no_grad():
         output = model(image)
         _, predicted = torch.max(output.data, 1)
     
-    # Clean up
     os.remove(temp_path)
     
-    # Map the predicted class to the label
-    label_map = {0: "circle", 1: "square", 2: "star", 3: "triangle"}
+    label_map = {0: "circle", 1: "halfmoon", 2: "heart", 3: "square", 4: "star", 5: "triangle"}
     predicted_label = label_map[predicted.item()]
     
     return jsonify({'predicted_class': predicted_label})

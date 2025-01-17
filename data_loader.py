@@ -38,13 +38,16 @@ class ImageDataset(Dataset):
         image = torch.tensor(image, dtype=torch.float32).unsqueeze(0).clone().detach()  # Fix warning
         return image, torch.tensor(label, dtype=torch.long)
 
-def load_data(file_path_X, file_path_y, batch_size=100):
+def load_data(file_path_X, file_path_y, batch_size=32):
     transform = transforms.Compose([
         transforms.ToPILImage(),
         transforms.RandomHorizontalFlip(),
-        transforms.RandomRotation(10),
+        transforms.RandomRotation(30),  # Increase rotation range
+        transforms.ColorJitter(brightness=0.5, contrast=0.5, saturation=0.5, hue=0.5),  # Increase color jitter
+        transforms.RandomAffine(degrees=0, translate=(0.3, 0.3)),  # Increase random affine transformations
         transforms.ToTensor()
     ])
+    
     dataset = ImageDataset(file_path_X, file_path_y, transform=transform)
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=4)
     print(f"Loaded data from {file_path_X} and {file_path_y}")
