@@ -1,58 +1,79 @@
-# Project AI and Microprocessor
+# 🎯 Project AI and Microprocessor
 
-## Chủ đề: Nhận diện hình khối (vuông, tròn, tam giác, ngôi sao) bằng mạng CNN
+## 📌 Topic: Shape Recognition Using CNN
+This project uses a Convolutional Neural Network (CNN) to recognize basic shapes such as squares, circles, triangles, and stars.
 
-### 1. Model AI
+---
 
-Dự án này sử dụng mạng nơ-ron tích chập (Convolutional Neural Network - CNN) để nhận diện các hình khối cơ bản như vuông, tròn, tam giác và ngôi sao. Mạng CNN được huấn luyện để phân loại các hình ảnh đầu vào thành một trong bốn loại hình khối này.
+## 📖 Table of Contents
+- [1️⃣ Introduction](#1%EF%B8%8F%C2%A0introduction)
+- [2️⃣ CNN Architecture](#2%EF%B8%8F%C2%A0cnn-architecture)
+- [3️⃣ Usage Guide](#3%EF%B8%8F%C2%A0usage-guide)
+- [4️⃣ Directory Structure](#4%EF%B8%8F%C2%A0directory-structure)
+- [5️⃣ Installation & Run](#5%EF%B8%8F%C2%A0installation--run)
+- [6️⃣ System Requirements](#6%EF%B8%8F%C2%A0system-requirements)
+- [7️⃣ License](#7%EF%B8%8F%C2%A0license)
 
-### 2. Giới thiệu về từng lớp trong model
+---
 
-Model CNN được định nghĩa trong file `cnn_model.py` với các lớp chính như sau:
+## 1️⃣ Introduction
+This project is designed to detect common shapes from input images using a CNN model. The workflow is as follows:
+1. Receive input images from users.
+2. Preprocess and normalize the images.
+3. Classify the shape using the CNN model.
+4. Return the prediction through a backend API.
 
-- **Conv2d**: Lớp tích chập 2D, được sử dụng để trích xuất các đặc trưng từ hình ảnh đầu vào.
-- **BatchNorm2d**: Lớp chuẩn hóa batch, giúp tăng tốc độ huấn luyện và ổn định mạng.
-- **ReLU**: Hàm kích hoạt phi tuyến, giúp mạng học được các đặc trưng phức tạp.
-- **MaxPool2d**: Lớp pooling, giảm kích thước của đặc trưng và giảm thiểu tính dư thừa.
-- **Linear**: Lớp kết nối đầy đủ, được sử dụng để phân loại các đặc trưng đã trích xuất.
+---
 
-### 3. Hướng dẫn sử dụng
+## 2️⃣ CNN Architecture
+The CNN model is defined in [`cnn_model.py`](cnn_model.py) with the following key components:
 
-#### Workflow
+| Layer            | Description                                                 |
+|------------------|-------------------------------------------------------------|
+| **Conv2d**       | 2D convolution layer for feature extraction.                |
+| **BatchNorm2d**  | Batch normalization for more stable training.               |
+| **ReLU**         | Non-linear activation to learn complex representations.     |
+| **MaxPool2d**    | Pools features to reduce spatial dimensions.                |
+| **Linear**       | Fully connected layer for final shape classification.       |
 
-1. **Chuẩn bị ảnh**: Ảnh đầu vào phải ở định dạng PNG.
-2. **Gửi ảnh đến backend**: Ảnh sẽ được gửi đến backend thông qua một request POST.
-3. **Xử lý ảnh**: Backend sẽ nhận ảnh, lưu tạm thời và chuẩn bị ảnh cho model CNN.
-4. **Dự đoán**: Model CNN sẽ dự đoán loại hình khối từ ảnh đầu vào.
-5. **Trả kết quả**: Backend sẽ trả về kết quả dự đoán dưới dạng JSON.
+---
 
-#### Cách sử dụng
+## 3️⃣ Usage Guide
 
-1. **Chạy server backend**:
-   ```bash
-   python app.py
-   ```
+### 🛠 **Overall Workflow**  
+1. **Prepare images**: Input images must be in `.PNG` format.  
+2. **Send images to server**: Use a `POST` request to the backend API.  
+3. **Preprocessing**: The image is temporarily stored and prepared for the CNN model.  
+4. **Prediction**: The CNN model classifies the shape.  
+5. **Result**: The backend returns a JSON response with the predicted shape.
 
-2. **Gửi ảnh đến server để dự đoán**:
-   Sử dụng script `test_client.py` để gửi ảnh đến server:
-   ```bash
-   python test_client.py
-   ```
-
-   Script này sẽ gửi ảnh `test.png` đến server và in ra kết quả dự đoán.
-
-#### Cấu trúc thư mục
-
-- `cnn_model.py`: Định nghĩa model CNN.
-- `Shape_Detection.py`: Các hàm xử lý ảnh.
-- `app.py`: Server backend Flask.
-- `test_client.py`: Script gửi ảnh đến server để dự đoán.
-
-#### Yêu cầu
-
-- Python 3.x
-- Thư viện: `torch`, `torchvision`, `flask`, `requests`, `PIL`
-
-Cài đặt các thư viện cần thiết:
+### 🚀 **Run the Backend Server**
 ```bash
-pip install torch torchvision flask requests pillow
+python app.py
+```
+
+---
+
+## 4️⃣ Directory Structure
+Below is a simple overview of the project layout:
+- cnn_model.py (defines the CNN architecture)
+
+---
+
+## 5️⃣ Installation & Run
+Use the following commands to install dependencies and run the project:
+```
+pip install -r requirements.txt
+python app.py
+```
+
+---
+
+## 6️⃣ System Requirements
+- Python 3.7+  
+- CPU or GPU with CUDA support for faster training
+
+---
+
+## 7️⃣ License
+This project is licensed under the MIT License.
